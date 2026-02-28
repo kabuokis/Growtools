@@ -603,6 +603,24 @@
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
+
+.tool-card[data-tool="item-browser"] .tool-icon {
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+}
+
+.tool-card[data-tool="item-browser"] .tool-title {
+    color: #4ade80;
+}
+
+.tool-card[data-tool="item-browser"] .tool-btn {
+    background: linear-gradient(to right, #4ade80, #22c55e);
+}
+
+.tool-card[data-tool="item-browser"] .tool-btn:hover {
+    background: linear-gradient(to right, #22c55e, #4ade80);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
     </style>
 </head>
 <body>
@@ -898,6 +916,16 @@
                             Stay updated with the latest item leaks and updates from Growtopia. Discover new content before it's officially released.
                         </p>
                         <a href="pages/growtopia-news.html" class="tool-btn" id="growtopiaNewsBtn"><i class="fas fa-arrow-right"></i> Use Tool</a>
+                    </div>
+                    <div class="tool-card" data-tool="item-browser">
+                        <div class="tool-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h2 class="tool-title">Item Browser</h2>
+                        <p class="tool-description">
+                            Browse and search Growtopia items with live sprites, recipe trees, and detailed statistics. Interactive catalog with bookmarks.
+                        </p>
+                        <a href="pages/items.html" class="tool-btn" id="itemBrowserBtn"><i class="fas fa-arrow-right"></i> Use Tool</a>
                     </div>
                     <div class="tool-card" data-tool="proxy-server">
                         <div class="coming-soon">Coming Soon</div>

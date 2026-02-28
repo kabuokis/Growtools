@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Item Browser - Growtools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/style.css">
+<style>
+:root{
+  --bg:#090b0f;--surface:#0f1318;--card:#141920;
+  --border:#1e2736;--border2:#28364a;
+  --green:#4ade80;--green2:#22c55e;--cyan:#38bdf8;--gold:#fbbf24;
+  --orange:#fb923c;--red:#f87171;--purple:#a78bfa;
+  --text:#dde6f0;--muted:#4a5a72;--muted2:#7a8fa8;
+  --px:'Montserrat',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(74,222,128,.04) 0%,transparent 60%)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(74,222,128,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(74,222,128,.02) 1px,transparent 1px);
+  background-size:32px 32px}
+.z1{position:relative;z-index:1}
+
+/* HEADER - custom styling from old inline header, now using site header */
+/* Keeping for backward compatibility but not displaying */
+header.old-header{display:none;}
+.logo.old-logo{display:none;}
+.logo em{color:var(--gold);font-style:normal}
+.subtitle{display:none;}
+
+/* STATUS */
+#statusBar{display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:7px 24px;font-size:12px;color:var(--muted2);
+  border-bottom:1px solid var(--border);background:var(--surface);z-index:1;position:relative}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--muted)}
+.sdot.loading{background:var(--gold);animation:blink 1s infinite}
+.sdot.ok{background:var(--green)}.sdot.err{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* APP */
+#app{display:block;position:relative;z-index:1}
+
+/* TOP BAR */
+.topbar{padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search-wrap{flex:1;min-width:140px;position:relative}
+.sbox{width:100%;background:var(--card);border:2px solid var(--border2);color:var(--text);
+  padding:9px 13px 9px 38px;border-radius:11px;font-family:'Montserrat',sans-serif;
+  font-size:14px;font-weight:600;outline:none;transition:border-color .2s,box-shadow .2s}
+.sbox:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,222,128,.1)}
+.sbox::placeholder{color:var(--muted);font-weight:400}
+.sico{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
+.cnt-badge{background:var(--card);border:1px solid var(--border2);border-radius:9px;
+  padding:6px 12px;font-size:12px;color:var(--muted2);white-space:nowrap}
+.cnt-badge strong{color:var(--green);font-size:13px}
+.ver-sel{background:var(--card);border:1px solid var(--border2);color:var(--text);
+  padding:8px 10px;border-radius:9px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;outline:none;cursor:pointer}
+
+/* AUTOCOMPLETE */
+.ac-drop{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--card);
+  border:1px solid var(--border2);border-radius:12px;overflow:hidden;z-index:200;display:none;
+  max-height:260px;overflow-y:auto;box-shadow:0 16px 36px rgba(0,0,0,.6)}
+.ac-item{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;
+  transition:background .1s;border-bottom:1px solid var(--border)}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.sel{background:rgba(74,222,128,.07)}
+.ac-name{font-weight:700;font-size:13px}.ac-sub{font-size:10px;color:var(--muted2)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:320px 1fr 210px;min-height:calc(100vh - 170px)}
+@media(max-width:1100px){.layout{grid-template-columns:300px 1fr}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}}
+
+/* DETAIL */
+#detail{border-right:1px solid var(--border);position:sticky;top:113px;
+  height:calc(100vh - 113px);overflow-y:auto;background:var(--surface)}
+.d-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;color:var(--muted);gap:12px;text-align:center;padding:36px}
+.d-empty .big{font-size:48px}
+.d-empty p{font-size:12px;line-height:1.7}
+.d-hero{background:linear-gradient(160deg,#0d1520,#101b2c);
+  padding:22px 18px 16px;border-bottom:1px solid var(--border);text-align:center;position:relative}
+.d-hero::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(74,222,128,.06) 0%,transparent 70%)}
+/* Clickable icon - opens full sprite sheet view */
+#dIconWrap{display:block;width:96px;height:96px;margin:0 auto 12px;cursor:pointer;
+  position:relative;border-radius:14px;overflow:hidden;
+  border:2px solid var(--border2);box-shadow:0 8px 28px rgba(0,0,0,.5)}
+#dIconWrap:hover::after{content:'🔍';position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:22px;background:rgba(0,0,0,.5)}
+#dIcon{display:block;width:96px;height:96px;image-rendering:pixelated;background:rgba(0,0,0,.4)}
+.d-name{font-family:var(--px);font-size:clamp(7px,1.1vw,10px);color:var(--gold);line-height:1.9;position:relative}
+.d-id{color:var(--muted2);font-size:11px;margin-top:4px;font-weight:700;position:relative}
+.d-desc{color:var(--muted2);font-size:12px;margin-top:7px;line-height:1.5;font-style:italic;position:relative}
+.bm-flag{position:absolute;top:12px;right:12px;font-size:18px;cursor:pointer;z-index:2;
+  transition:transform .15s;user-select:none;opacity:.6}
+.bm-flag:hover{transform:scale(1.2);opacity:1}
+.bm-flag.on{opacity:1}
+.d-body{padding:13px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:11px}
+.tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid}
+.t-r{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3);color:var(--gold)}
+.t-t{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.3);color:var(--cyan)}
+.t-l{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.3);color:var(--purple)}
+.t-c{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.3);color:var(--red)}
+.sec{margin-bottom:13px}
+.sec-label{font-family:var(--px);font-size:7px;color:var(--muted);letter-spacing:2px;
+  margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.si{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:6px 9px}
+.sk{font-size:10px;color:var(--muted2);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.sv{font-size:12px;color:var(--text);font-weight:700;margin-top:2px;word-break:break-all}
+.sv.g{color:var(--green)}.sv.o{color:var(--orange)}.sv.r{color:var(--red)}.sv.c{color:var(--cyan)}.sv.p{color:var(--purple)}
+.offset-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;margin-top:4px}
+.offset-btn{display:inline-flex;align-items:center;gap:5px;background:var(--card);
+  border:1px solid var(--border2);color:var(--muted2);padding:5px 10px;border-radius:7px;
+  cursor:pointer;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;transition:all .15s}
+.offset-btn:hover{background:var(--border2);color:var(--text)}
+.offset-btn.on{background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.4);color:var(--green)}
+.exp-btn{width:100%;background:transparent;border:1px solid var(--border2);color:var(--muted2);
+  padding:6px;border-radius:7px;cursor:pointer;font-family:'Montserrat',sans-serif;
+  font-size:11px;font-weight:600;transition:all .15s;margin-top:4px}
+.exp-btn:hover{background:var(--border);color:var(--text)}
+.raw-stats{display:none;margin-top:7px}
+.raw-stats.open{display:block}
+.raw-row{display:flex;justify-content:space-between;padding:3px 7px;border-radius:4px;font-size:10px}
+.raw-row:nth-child(even){background:rgba(255,255,255,.02)}
+.rk{color:var(--muted2);font-weight:600}.rv{color:var(--text);font-weight:700;text-align:right;max-width:58%;word-break:break-all}
+.recipe-eq{display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px;margin-bottom:7px}
+.r-chip{display:flex;align-items:center;gap:5px;
+  background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);
+  border-radius:7px;padding:4px 8px;cursor:pointer;transition:all .15s;font-weight:700;font-size:11px;color:var(--green)}
+.r-chip:hover{background:rgba(74,222,128,.15);transform:scale(1.04)}
+.r-chip.base{background:rgba(100,116,139,.08);border-color:rgba(100,116,139,.25);color:var(--muted2);cursor:default}
+.r-chip.base:hover{transform:none}
+.op{color:var(--muted);font-size:17px;font-weight:900}
+.eq-sym{color:var(--gold);font-size:15px;font-weight:900}
+.tree-toggle{display:flex;gap:5px;margin-bottom:8px}
+/* Visual tree container scrolls horizontally when tree is wider than panel */
+#detail [id^="treeDisplay_"]{overflow-x:auto;overflow-y:hidden;max-width:100%;}
+.tt-btn{flex:1;padding:5px 8px;background:transparent;border:1px solid var(--border2);
+  color:var(--muted2);border-radius:7px;cursor:pointer;font-family:'Montserrat',sans-serif;
+  font-size:11px;font-weight:600;transition:all .15s}
+.tt-btn:hover{background:var(--border);color:var(--text)}
+.tt-btn.active{background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.4);color:var(--green)}
+/* TEXT TREE */
+.text-tree{font-size:11px;line-height:1.9}
+.tnode{padding-left:11px;border-left:2px solid var(--border);margin-left:6px;position:relative;margin-top:2px}
+.tnode::before{content:'─';position:absolute;left:-2px;color:var(--border);font-size:9px;top:5px}
+.tname{color:var(--cyan);cursor:pointer;font-weight:700}
+.tname:hover{color:var(--green);text-decoration:underline}
+.tcheck{display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;border-radius:3px;border:1px solid var(--border2);
+  margin-right:4px;cursor:pointer;font-size:9px;vertical-align:middle;transition:all .15s}
+.tcheck:hover{border-color:var(--green)}
+.tcheck.checked{background:var(--green2);border-color:var(--green2);color:#fff}
+.tbase-label{color:var(--muted);font-size:10px;margin-left:4px;font-style:italic}
+/* VISUAL TREE */
+#vtreeCanvas{cursor:grab;display:block;width:100%;background:var(--bg);
+  border-radius:8px;border:1px solid var(--border)}
+#vtreeCanvas:active{cursor:grabbing}
+/* USED IN */
+.ui-chips{display:flex;flex-wrap:wrap;gap:4px}
+.ui-chip{background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);color:var(--cyan);
+  padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;transition:all .12s}
+.ui-chip:hover{background:rgba(56,189,248,.17)}
+
+/* RESULTS */
+#results{padding:14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.r-header{font-family:var(--px);font-size:7px;color:var(--muted);letter-spacing:1px}
+.r-header span{color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.gcard{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:12px 8px 9px;cursor:pointer;transition:all .15s;text-align:center;position:relative;overflow:hidden}
+.gcard::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:0;transition:opacity .2s}
+.gcard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 7px 18px rgba(0,0,0,.3)}
+.gcard:hover::after,.gcard.active::after{opacity:1}
+.gcard.active{border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.04)}
+.gcard.checked-item::after{opacity:.5;background:linear-gradient(90deg,transparent,var(--green2),transparent)}
+.g-ico{width:48px;height:48px;image-rendering:pixelated;margin:0 auto 7px;display:block;border-radius:7px;background:var(--bg)}
+.g-name{font-size:10px;font-weight:700;color:var(--text);line-height:1.3}
+.g-id{font-size:9px;color:var(--muted);margin-top:2px}
+.g-rar{position:absolute;top:5px;right:6px;font-size:8px;font-weight:700;color:var(--gold);opacity:.6}
+.g-bm{position:absolute;top:4px;left:5px;font-size:11px;opacity:0;transition:opacity .15s;cursor:pointer;z-index:2}
+.gcard:hover .g-bm,.g-bm.on{opacity:1}
+.g-ck{position:absolute;bottom:5px;right:5px;width:14px;height:14px;
+  border-radius:3px;border:1px solid var(--border2);background:var(--bg);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:8px;
+  transition:all .15s;z-index:2}
+.g-ck:hover{border-color:var(--green)}
+.g-ck.checked{background:var(--green2);border-color:var(--green2);color:#fff}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;padding:2px 0}
+.pg-btn{background:var(--card);border:1px solid var(--border2);color:var(--muted2);
+  padding:5px 9px;border-radius:7px;cursor:pointer;font-family:'Montserrat',sans-serif;
+  font-size:11px;font-weight:700;transition:all .15s;min-width:30px;text-align:center}
+.pg-btn:hover{background:var(--border);color:var(--text)}
+.pg-btn.active{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.4);color:var(--green)}
+.pg-btn:disabled{opacity:.3;cursor:default}
+.pg-ellipsis{color:var(--muted);padding:5px 3px;font-weight:700;font-size:11px}
+
+/* BOOKMARKS */
+#bookmarks{border-left:1px solid var(--border);position:sticky;top:113px;
+  height:calc(100vh - 113px);overflow-y:auto;background:var(--surface);padding:13px}
+@media(max-width:1100px){#bookmarks{display:none}}
+.bm-title{font-family:var(--px);font-size:8px;color:var(--gold);letter-spacing:1px;
+  margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.bm-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.bm-empty{color:var(--muted);font-size:11px;text-align:center;padding:18px 0;line-height:1.6}
+.bm-item{display:flex;align-items:center;gap:7px;padding:6px 7px;
+  background:var(--card);border:1px solid var(--border);border-radius:9px;
+  margin-bottom:5px;cursor:pointer;transition:all .15s}
+.bm-item:hover{border-color:var(--border2)}
+.bm-item-name{font-size:11px;font-weight:700;flex:1;line-height:1.3}
+.bm-remove{color:var(--muted);font-size:12px;cursor:pointer;padding:2px;transition:color .15s}
+.bm-remove:hover{color:var(--red)}
+.bm-ck{width:14px;height:14px;border-radius:3px;border:1px solid var(--border2);
+  background:var(--bg);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:8px;transition:all .15s;flex-shrink:0}
+.bm-ck:hover{border-color:var(--green)}
+.bm-ck.checked{background:var(--green2);border-color:var(--green2);color:#fff}
+.bm-progress{margin-bottom:10px;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px}
+.bm-prog-label{font-size:11px;color:var(--muted2);font-weight:600;margin-bottom:5px}
+.bm-prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.bm-prog-fill{height:100%;background:var(--green2);border-radius:3px;transition:width .3s}
+.bm-prog-text{font-size:10px;color:var(--muted2);margin-top:4px;text-align:right}
+.bm-clear{width:100%;background:transparent;border:1px solid var(--border2);color:var(--muted);
+  padding:5px;border-radius:7px;cursor:pointer;font-family:'Montserrat',sans-serif;
+  font-size:11px;font-weight:600;margin-top:8px;transition:all .15s}
+.bm-clear:hover{border-color:var(--red);color:var(--red)}
+
+.empty{text-align:center;padding:48px 18px;color:var(--muted)}
+.empty .ico{font-size:46px;margin-bottom:12px}
+.empty p{font-size:13px;line-height:1.7}
+
+/* MODAL */
+#treeModal{display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow:auto;padding:16px}
+#treeModal.open{display:flex;align-items:flex-start;justify-content:center}
+.modal-box{background:var(--card);border:1px solid var(--border2);border-radius:16px;
+  padding:20px;max-width:96vw;min-width:280px;position:relative;margin:auto}
+.modal-close{position:absolute;top:12px;right:12px;background:var(--surface);
+  border:1px solid var(--border2);color:var(--muted2);width:26px;height:26px;border-radius:50%;
+  cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--border);color:var(--text)}
+.modal-title{font-family:var(--px);font-size:9px;color:var(--gold);letter-spacing:1px;margin-bottom:12px;padding-right:28px}
+
+/* SPRITE VIEWER MODAL */
+#spriteModal{display:none;position:fixed;inset:0;z-index:600;
+  background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;cursor:zoom-out}
+#spriteModal.open{display:flex}
+#spriteModalContent{text-align:center;padding:20px}
+#spriteModalCanvas{image-rendering:pixelated;border-radius:8px;
+  max-width:90vw;max-height:80vh;display:block;margin:0 auto}
+.sprite-info{color:var(--muted2);font-size:12px;margin-top:12px}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* SITE INTEGRATION */
+.icon-dat-decoder { color: var(--tool-1) !important; }
+.icon-data-mining { color: var(--tool-2) !important; }
+.icon-rttex-converter { color: var(--tool-3) !important; }
+.icon-account-checker { color: var(--tool-4) !important; }
+.icon-server-monitor { color: var(--tool-6) !important; }
+.icon-renderer { color: var(--tool-8) !important; }
+.icon-cache { color: var(--tool-7) !important; }
+.icon-level-calculator { color: var(--tool-5) !important; }
+.icon-items { color: #4ade80 !important; }
+.icon-admin-checker { color: var(--tool-9) !important; }
+
+header {
+    position: relative; 
+    background-color: var(--darker); 
+    padding: 10px 0;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+}
+
+.header-right-content {
+    display: flex;
+    align-items: center;
+    gap: 20px; 
+}
+
+.visitor-count {
+    list-style: none;
+    display: flex; 
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+}
+
+.logo-img {
+    height: 50px; 
+    width: auto;
+}
+
+.logo-text {
+     color: var(--light); 
+     white-space: nowrap;
+}
+
+.nav-link-custom {
+    color: var(--light) !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    transition: background-color 0.3s;
+}
+
+.nav-link-custom:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.nav-link-custom.active {
+    background-color: rgba(255, 255, 255, 0.05) !important;    
+}
+
+#dropdownNavbarLink {
+    color: var(--light) !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    transition: background-color 0.3s;
+}
+
+#dropdownNavbarLink:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--light) !important;
+}
+
+#dropdownNavbar {
+    background-color: var(--darker) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4) !important;
+}
+
+#dropdownNavbar a {
+    color: var(--light) !important;
+}
+
+#dropdownNavbar a:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--light) !important;
+}
+
+.nav-links-flowbite a i, #dropdownNavbarLink i {
+    margin-right: 5px;
+}
+
+.header-right-content button[data-collapse-toggle] {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .visitor-count {
+        display: none;
+    }
+    .header-right-content button[data-collapse-toggle] {
+        display: inline-flex;
+    }
+}
+
+/* Adjust app layout for site integration */
+#app {
+    top: auto !important;
+    position: relative;
+}
+
+.topbar {
+    position: relative !important;
+}
+
+main.main {
+    padding: 0;
+}
+
+.tool-container {
+    padding-bottom: 40px;
+}
+
+.social-links a,
+.social-links a:focus,
+.social-links a:active,
+.social-links a:hover {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    text-decoration: none !important;
+    display: inline-block;
+    color: var(--light);
+    transition: all 0.3s ease;
+    font-size: 20px;
+    margin-right: 15px;
+    background: none !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 0 !important;
+}
+
+.social-links a:hover {
+    color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.social-links a:focus:not(:focus-visible) {
+    outline: none !important;
+}
+
+.social-links a:focus-visible {
+    outline: 2px solid var(--tool-3) !important;
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+</style>
+</head>
+<body>
+<header>
+    <div class="container header-content">
+        <div class="logo">
+            <a href="../index.html" class="logo">
+                <img src="../images/Water_Stone.png" alt="Growtools Logo" class="logo-img">
+                <span class="logo-text">Growtools</span>
+            </a>
+        </div>
+
+        <div class="header-right-content">
+            <button data-collapse-toggle="navbar-dropdown" type="button" class="inline-flex items-center p-2 ms-3 w-10 h-10 justify-center text-sm rounded-lg md:hidden text-gray-400 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                <span class="sr-only">Open main menu</span>
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+                </svg>
+            </button>
+            
+            <div class="hidden w-full md:block md:w-auto" id="navbar-dropdown">
+                <ul class="nav-links-flowbite flex flex-col font-medium p-4 mt-4 rounded-lg md:flex-row md:mt-0 md:text-sm md:border-0 md:space-x-8 md:rtl:space-x-reverse">
+                    <li>
+                        <a href="../index.html" class="nav-link-custom block">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="dat-decoder.html" class="nav-link-custom block">
+                            <i class="fas fa-code icon-dat-decoder"></i> DAT Decoder
+                        </a>
+                    </li>
+                    <li>
+                        <a href="data-mining.html" class="nav-link-custom block">
+                            <i class="fas fa-database icon-data-mining"></i> Data Mining
+                        </a>
+                    </li>
+                    <li>
+                        <a href="rttex-converter.html" class="nav-link-custom block">
+                            <i class="fas fa-exchange-alt icon-rttex-converter"></i> RTTEX Converter
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" class="flex items-center justify-between w-full py-2 px-3 rounded-lg md:border-0 md:p-0 md:w-auto">
+                            <i class="fas fa-cubes"></i> More Tools <i class="fas fa-chevron-down ms-3" style="font-size: 12px;"></i>
+                        </button>
+                        
+                        <div id="dropdownNavbar" class="z-10 hidden font-normal divide-y divide-gray-600 rounded-lg shadow w-56">
+                            <ul class="py-2 text-sm" aria-labelledby="dropdownNavbarLink">
+                                <li>
+                                    <a href="account-checker.html" class="block px-4 py-2">
+                                        <i class="fas fa-user-shield icon-account-checker"></i> Account Checker
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="render-world.html" class="block px-4 py-2">
+                                        <i class="fas fa-globe icon-renderer"></i> World Renderer
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="items.html" class="nav-link-custom active block px-4 py-2" aria-current="page">
+                                        <i class="fas fa-leaf icon-items"></i> Item Browser
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="server-monitor.html" class="block px-4 py-2">
+                                        <i class="fas fa-server icon-server-monitor"></i> Server Monitor
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="cache-checker.html" class="block px-4 py-2">
+                                        <i class="fas fa-id-card icon-cache"></i> Cache Checker
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="level-calculator.html" class="block px-4 py-2">
+                                        <i class="fas fa-calculator icon-level-calculator"></i> Level Calculator
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="admin-checker.html" class="block px-4 py-2">
+                                        <i class="fas fa-user-shield icon-admin-checker"></i> Admin Checker
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="visitor-count">
+                <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FxSkriptx%2FSkriptProxy&countColor=%23263759" />
+            </div>  
+        </div>
+    </div>
+</header>
+
+<main class="main" style="background: var(--bg);">
+    <div class="content-area" style="padding-top: 20px;">
+        <div class="container tool-container">
+<div id="statusBar">
+  <div class="sdot loading" id="sdot"></div>
+  <span id="stxt">Loading items from GitHub…</span>
+</div>
+
+<div id="app">
+  <div class="topbar z1">
+    <div class="search-wrap">
+      <span class="sico">🔍</span>
+      <input class="sbox" id="sbox" type="text" placeholder="Search by name or ID…" autocomplete="off">
+      <div class="ac-drop" id="acdrop"></div>
+    </div>
+    <select class="ver-sel" id="verSel" onchange="switchVersion()" title="Switch version"></select>
+    <div class="cnt-badge"><strong id="cntBadge">…</strong> items</div>
+    <div style="font-size:10px;color:var(--muted);margin-left:8px;white-space:nowrap" title="Build version">build&nbsp;10</div>
+  </div>
+  <div class="layout">
+    <div id="detail"><div class="d-empty"><div class="big">🌱</div><p>Click any item to view sprite, recipe, and stats</p></div></div>
+    <div id="results"><div class="empty"><div class="ico">⏳</div><p>Loading…</p></div></div>
+    <div id="bookmarks">
+      <div class="bm-title">🔖 BOOKMARKS</div>
+      <div id="bmList"><div class="bm-empty">No bookmarks yet.<br>Click 🔖 on any item.</div></div>
+      <button class="bm-clear" onclick="clearBookmarks()">✕ Clear all</button>
+    </div>
+  </div>
+</div>
+
+<!-- TREE MODAL -->
+<div id="treeModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalTree"></div>
+  </div>
+</div>
+
+<!-- SPRITE FULL VIEW MODAL -->
+<div id="spriteModal" onclick="closeSpriteModal()">
+  <div id="spriteModalContent">
+    <canvas id="spriteModalCanvas"></canvas>
+    <div class="sprite-info" id="spriteInfo"></div>
+    <div style="color:var(--muted);font-size:11px;margin-top:6px">Click anywhere to close</div>
+  </div>
+</div>
+
+        </div>
+    </div>
+</main>
+
+<script>
+/* ═══════════════════ CONFIG ═══════════════════ */
+const CFG = {
+  user: 'kabuokis',
+  repo: 'growtopia-data',
+  defaultVersion: '5.42',
+  tile: 32
+};
+
+/* ═══════════════════ GLOBALS ═══════════════════ */
+let ITEMS=[],IMAP={},IDMAP={};
+let RDB={},USED_IN={};
+let TEX_BASE='',TILE=CFG.tile,RAW_BASE='';
+let SPRITES={};
+let SEED_IMG=null;
+let SEL=null,ACI=-1;
+let CUR_RESULTS=[],CUR_PAGE=1;
+const PAGE_SIZE=80;
+let TREE_MODE='text';
+let RETRY_IV=null;
+
+/* ═══════════════════ PERSISTENCE ═══════════════════ */
+let BOOKMARKS=new Set(JSON.parse(localStorage.getItem('gt_bm')||'[]'));
+let CHECKED=new Set(JSON.parse(localStorage.getItem('gt_ck')||'[]'));
+// offset state per item: true = use offset (default), false = base only
+let OFFSET_STATE=JSON.parse(localStorage.getItem('gt_off')||'{}');
+
+function saveBM(){localStorage.setItem('gt_bm',JSON.stringify([...BOOKMARKS]));}
+function saveCK(){localStorage.setItem('gt_ck',JSON.stringify([...CHECKED]));}
+function saveOff(){localStorage.setItem('gt_off',JSON.stringify(OFFSET_STATE));}
+
+function getOffset(id){return OFFSET_STATE[id]===true;}  // default = false (base sprite), toggled on per item
+
+/* ═══════════════════ PARSERS ═══════════════════ */
+function parseItems(txt){
+  const items=[];
+  for(const raw of txt.split('\n')){
+    const l=raw.trim();
+    if(!l||l.startsWith('id '))continue;
+    const p=l.split('|').map(s=>s.trim());
+    if(p.length<6||isNaN(+p[0]))continue;
+    items.push({
+      id:+p[0],properties:+p[1]||0,type:+p[2]||0,material:+p[3]||0,
+      name:p[4]||'',file_name:p[5]||'',file_hash:p[6]||'',
+      visual_type:+p[7]||0,cook_time:+p[8]||0,
+      tex_x:+p[9]||0,tex_y:+p[10]||0,
+      spread_type:+p[11]||0,layer:+p[12]||0,collision:+p[13]||0,
+      hardness:+p[14]||0,regen_time:+p[15]||0,clothing_type:+p[16]||0,
+      rarity:+p[17]||0,max_hold:+p[18]||0,
+      alt_file:p[19]||'',alt_hash:p[20]||'',anim_ms:+p[21]||0,
+      pet_name:p[22]||'',
+      seed_base:+p[26]||0,seed_over:+p[27]||0,
+      tree_base:+p[28]||0,tree_over:+p[29]||0,
+      bg_col:p[30]?parseInt(p[30],10)||0:0,
+      fg_col:p[31]?parseInt(p[31],10)||0:0,
+      seed1:+p[32]||0,seed2:+p[33]||0,bloom_time:+p[34]||0,
+      parent_id:+p[48]||0,description:p[56]||'',item_info:p[57]||'',
+    });
+  }
+  return items;
+}
+
+function parseRecipes(txt){
+  const db={};
+  for(const raw of txt.split('\n')){
+    const l=raw.trim();
+    if(!l||l.startsWith('#')||l.startsWith('/'))continue;
+    let m=l.match(/^(.+?)\s*=\s*(.+?)\s*\+\s*(.+)$/);
+    if(m){db[m[1].trim()]=[m[2].trim(),m[3].trim()];continue;}
+    m=l.match(/^(.+?)\s*:\s*(.+?)\s*\+\s*(.+)$/);
+    if(m){db[m[1].trim()]=[m[2].trim(),m[3].trim()];continue;}
+    const p=l.split('|').map(s=>s.trim());
+    if(p.length>=3&&p[0]&&p[1]&&p[2])db[p[0]]=[p[1],p[2]];
+  }
+  return db;
+}
+
+function buildUsedIn(db){
+  const ui={};
+  Object.entries(db).forEach(([n,[a,b]])=>{
+    [a,b].forEach(i=>{if(!ui[i])ui[i]=[];if(!ui[i].includes(n))ui[i].push(n);});
+  });
+  return ui;
+}
+
+/* ═══════════════════ AUTO-LOAD ═══════════════════ */
+window.addEventListener('load',()=>{
+  RAW_BASE=`https://raw.githubusercontent.com/${CFG.user}/${CFG.repo}/main`;
+  loadVersion(CFG.defaultVersion);
+});
+
+async function loadVersion(ver){
+  TILE=CFG.tile;
+  TEX_BASE=`${RAW_BASE}/${ver}/decoded/textures/`;
+  SPRITES={};SEED_IMG=null;
+  _imgWaiters.clear();
+  _retryCounts.clear();
+
+  setStatus('loading',`Loading v${ver}…`);
+  try{
+    const [ir,rr]=await Promise.allSettled([
+      fetch(`${RAW_BASE}/${ver}/decoded/items.dat.txt`),
+      fetch(`${RAW_BASE}/recapies.txt`)
+    ]);
+    if(ir.status==='rejected'||!ir.value.ok)throw new Error(`items.dat.txt: HTTP ${ir.value?.status}`);
+    ITEMS=parseItems(await ir.value.text());
+    IMAP={};IDMAP={};
+    ITEMS.forEach(it=>{IMAP[it.name]=it;IDMAP[it.id]=it;});
+
+    if(rr.status==='fulfilled'&&rr.value.ok){
+      const rtxt=await rr.value.text();
+      RDB=parseRecipes(rtxt);
+    }
+    USED_IN=buildUsedIn(RDB);
+
+    preloadSeed();
+
+    // Populate version selector
+    const vs=document.getElementById('verSel');
+    if(![...vs.options].some(o=>o.value===ver)){
+      const opt=document.createElement('option');
+      opt.value=ver;opt.textContent=`v${ver}`;opt.selected=true;vs.appendChild(opt);
+    }
+    document.getElementById('cntBadge').textContent=ITEMS.length.toLocaleString();
+    setStatus('ok',`✓ ${ITEMS.length.toLocaleString()} items · ${Object.keys(RDB).length} recipes · v${ver}`);
+    CUR_RESULTS=ITEMS;CUR_PAGE=1;
+    showGrid();renderBookmarks();startLiveSprites();
+  }catch(e){setStatus('err','Error: '+e.message);}
+}
+
+async function loadData(){} // kept for compat
+
+function setStatus(t,m){
+  document.getElementById('sdot').className='sdot '+t;
+  document.getElementById('stxt').textContent=m;
+}
+
+function preloadSeed(){
+  SEED_IMG=new Image();SEED_IMG.crossOrigin='anonymous';
+  SEED_IMG.src=TEX_BASE+'seed.png';
+  SEED_IMG.addEventListener('load',()=>{
+    SEED_IMG._loadHooked=true;
+    ITEMS.filter(it=>isSeedItem(it)).forEach(it=>{
+      document.querySelectorAll(`canvas[data-id="${it.id}"]`).forEach(c=>{
+        drawOn(c,it,c.width||48);
+      });
+    });
+  });
+}
+
+async function switchVersion(){
+  const ver=document.getElementById('verSel').value;
+  await loadVersion(ver);
+}
+
+/* ═══════════════════ SPRITE ENGINE ═══════════════════ */
+const BLANK_THRESHOLD=25;
+
+// Convert a .rttex file_name to the correct PNG path.
+// Items with player_feet*, player_handitem*, player_longhanditem*, or player_cosmetics* textures
+// use the _icon.png variant for clean inventory sprites.
+function fileNameToPng(fn){
+  if(!fn)return null;
+  const base=fn.replace(/\.rttex$/i,'');
+  if(/^player_feet/i.test(base)||
+     /^player_handitem/i.test(base)||
+     /^player_longhanditem/i.test(base)||
+     /^player_cosmetics/i.test(base)){
+    return base+'_icon.png';
+  }
+  return base+'.png';
+}
+
+function getImg(fn){
+  if(!fn||!TEX_BASE)return null;
+  const png=fileNameToPng(fn);
+  if(SPRITES[png])return SPRITES[png];
+  const img=new Image();img.crossOrigin='anonymous';
+  img.src=TEX_BASE+png;SPRITES[png]=img;return img;
+}
+
+// Count visible (non-transparent) pixels of a region on an image
+function regionVisible(img,sx,sy,sw,sh){
+  if(!img||!img.complete||!img.naturalWidth)return 0;
+  const oc=document.createElement('canvas');oc.width=sw;oc.height=sh;
+  const ctx=oc.getContext('2d');
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+  const d=ctx.getImageData(0,0,sw,sh).data;
+  let c=0;for(let i=3;i<d.length;i+=4)if(d[i]>20)c++;
+  return c;
+}
+
+// Get dominant color of a sprite region
+function getDominantColor(img,sx,sy,sw,sh){
+  if(!img||!img.complete||!img.naturalWidth)return[100,160,80];
+  const oc=document.createElement('canvas');oc.width=sw;oc.height=sh;
+  const ctx=oc.getContext('2d');
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+  const d=ctx.getImageData(0,0,sw,sh).data;
+  let r=0,g=0,b=0,n=0;
+  for(let i=0;i<d.length;i+=4){
+    if(d[i+3]>80){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}
+  }
+  return n>0?[Math.round(r/n),Math.round(g/n),Math.round(b/n)]:[100,160,80];
+}
+
+// Item is a SEED only if bloom_time != 0
+// bloom_time is column 34 in items.dat — seeds have growth time, blocks don't
+function isSeedItem(item){
+  return (item.bloom_time||0) !== 0;
+}
+
+// Is this item a boots/shoes/cosmetic type that uses an _icon.png?
+// Checks file_name for player_feet, player_handitem, player_cosmetics patterns
+function isIconItem(item){
+  const fn=(item.file_name||'').toLowerCase();
+  return fn.includes('player_feet')||
+         fn.includes('player_handitem')||
+         fn.includes('player_longhanditem')||
+         fn.includes('player_cosmetics');
+}
+// Keep alias for backward compat
+function isBootItem(item){return isIconItem(item);}
+
+// Is this item flammable? (properties bit 0x20)
+function isFlammable(item){return !!(item.properties&0x20);}
+
+
+
+// MAIN DRAW ENTRY POINT
+function drawOn(canvas,item,sz){
+  if(!canvas||!item)return;
+  if(canvas.width!==sz||canvas.height!==sz){canvas.width=sz;canvas.height=sz;}
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,sz,sz);
+
+  if(isSeedItem(item)){drawSeed(ctx,item,sz);return;}
+  if(isBootItem(item)){drawBoot(ctx,item,sz);return;}
+  drawBlock(ctx,item,sz);
+}
+
+// Apply Spread Type (p[11] = spread_type) offset to get the MAIN display tile.
+// spread_type defines which tile in the atlas region is the representative icon:
+//   0, 1 = main tile at (x, y)
+//   2     = main tile at (x+4, y+1)
+//   3     = main tile at (x+3, y)
+//   5     = main tile at (x+4, y+1)
+function getEffectiveTex(item){
+  const x=item.tex_x, y=item.tex_y;
+  switch(item.spread_type){
+    case 2: return{tx:x+4,ty:y+1};
+    case 3: return{tx:x+3,ty:y};
+    case 5: return{tx:x+4,ty:y+1};
+    default: return{tx:x,ty:y};
+  }
+}
+// Map from png filename -> set of item ids that use it and are waiting to render
+const _imgWaiters=new Map();
+
+// Register that item is waiting for img to load, and set up the shared listener once.
+function hookImgLoad(img,file_name){
+  if(!img)return;
+  const png=fileNameToPng(file_name)||file_name;
+  if(!_imgWaiters.has(png))_imgWaiters.set(png,new Set());
+  // The actual item ids get added by the retry loop — we just need the listener hooked
+  if(!img._loadHooked){
+    img._loadHooked=true;
+    img.addEventListener('load',()=>{
+      // Redraw ALL canvases whose item uses this png
+      document.querySelectorAll('canvas[data-id]').forEach(c=>{
+        const it=IDMAP[+c.dataset.id];
+        if(!it)return;
+        if(fileNameToPng(it.file_name)===png){
+          drawOn(c,it,c.width||48);
+        }
+      });
+    });
+    img.addEventListener('error',()=>{img._loadHooked=false;}); // allow re-hook on retry
+  }
+}
+
+function drawBlock(ctx,item,sz){
+  const useOff=getOffset(item.id);
+  const img=getImg(item.file_name);
+  const{tx:baseTX,ty:baseTY}=getEffectiveTex(item);
+
+  const tryRender=(i,tx,ty)=>{
+    if(!i||!i.complete||!i.naturalWidth)return false;
+    if(tx<0||ty<0)return false;
+    if(tx*TILE+TILE>i.naturalWidth||ty*TILE+TILE>i.naturalHeight)return false;
+    const vis=regionVisible(i,tx*TILE,ty*TILE,TILE,TILE);
+    if(vis<BLANK_THRESHOLD)return false;
+    ctx.imageSmoothingEnabled=false;
+    try{ctx.drawImage(i,tx*TILE,ty*TILE,TILE,TILE,0,0,sz,sz);}catch(e){return false;}
+    return true;
+  };
+
+  const doRender=()=>{
+    if(tryRender(img,baseTX,baseTY))return;
+    if((baseTX!==item.tex_x||baseTY!==item.tex_y)&&tryRender(img,item.tex_x,item.tex_y))return;
+    if(useOff&&tryRender(img,item.tex_x+4,item.tex_y+1))return;
+    drawQmark(ctx,sz);
+  };
+
+  if(!img){drawQmark(ctx,sz);return;}
+  if(img.complete&&img.naturalWidth){doRender();}
+  else{
+    drawQmark(ctx,sz);
+    hookImgLoad(img,item.file_name);
+  }
+}
+
+// Decode Growtopia color integer to [r,g,b]
+// Formula: val = n & 0xFFFFFFFF -> hex bytes b1b2b3b4 -> color = #b3b2b1
+function decodeGTColor(n){
+  const val=(n|0)>>>0; // unsigned 32-bit
+  const hex=val.toString(16).padStart(8,'0');
+  const b1=parseInt(hex.slice(0,2),16);
+  const b2=parseInt(hex.slice(2,4),16);
+  const b3=parseInt(hex.slice(4,6),16);
+  // b4 = hex.slice(6,8) = alpha (ignored, always FF)
+  return[b3,b2,b1]; // RGB = #b3b2b1
+}
+
+// SEED DRAWING — two-layer composite:
+//   Layer 1: seed.png row 0, slot seed_base  -> tinted with bg_col
+//   Layer 2: seed.png row 1, slot seed_over  -> tinted with fg_col
+// Then composite overlay on top of base.
+function drawSeed(ctx,item,sz){
+  if(!SEED_IMG||!SEED_IMG.complete||!SEED_IMG.naturalWidth){
+    if(SEED_IMG&&!SEED_IMG.complete&&!SEED_IMG._loadHooked){
+      SEED_IMG._loadHooked=true;
+      SEED_IMG.addEventListener('load',()=>{
+        // Redraw all seed canvases when seed.png loads
+        ITEMS.filter(it=>isSeedItem(it)).forEach(it=>redrawAllFor(it));
+      });
+    }
+    drawQmark(ctx,sz);return;
+  }
+
+  const SLOT_W=16, SLOT_H=16;
+  // seed_base and seed_over are item fields (parsed as columns 26 and 27 in items.dat)
+  const baseSlot=item.seed_base||0;
+  const overSlot=item.seed_over||0;
+  // bg_col and fg_col are stored as signed 32-bit ints in items.dat (cols 30, 31)
+  const bgCol=decodeGTColor(item.bg_col||0);
+  const fgCol=decodeGTColor(item.fg_col||0);
+
+  // Helper: draw one layer of seed.png, tint it with a color
+  function drawLayer(slotX, rowY, color){
+    const oc=document.createElement('canvas');oc.width=SLOT_W;oc.height=SLOT_H;
+    const c2=oc.getContext('2d');
+    c2.drawImage(SEED_IMG, slotX*SLOT_W, rowY*SLOT_H, SLOT_W, SLOT_H, 0,0, SLOT_W, SLOT_H);
+    const id=c2.getImageData(0,0,SLOT_W,SLOT_H);
+    const d=id.data;
+    const[tr,tg,tb]=color;
+    for(let i=0;i<d.length;i+=4){
+      const grey=d[i]/255;
+      d[i]  =Math.min(255,Math.round(tr*grey*0.85));
+      d[i+1]=Math.min(255,Math.round(tg*grey*0.85));
+      d[i+2]=Math.min(255,Math.round(tb*grey*0.85));
+    }
+    c2.putImageData(id,0,0);
+    return oc;
+  }
+
+  // Composite: base (row 0) + overlay (row 1) into a SLOT_W x SLOT_W canvas
+  const comp=document.createElement('canvas');comp.width=SLOT_W;comp.height=SLOT_W;
+  const cc=comp.getContext('2d');cc.imageSmoothingEnabled=false;
+
+  // Draw base layer (row 0, tinted with bg_col)
+  const useBase=bgCol[0]+bgCol[1]+bgCol[2]>10;
+  const baseLyr=drawLayer(baseSlot, 0, useBase?bgCol:[160,180,80]);
+  cc.drawImage(baseLyr,0,0);
+
+  // Draw overlay layer (row 1, tinted with fg_col) on top
+  const overHasContent=SEED_IMG.naturalHeight>=SLOT_H*2; // seed.png is 32px tall
+  if(overHasContent){
+    const useFg=fgCol[0]+fgCol[1]+fgCol[2]>10;
+    const overLyr=drawLayer(overSlot, 1, useFg?fgCol:[60,80,40]);
+    cc.drawImage(overLyr,0,0);
+  }
+
+  // Scale to fill sz×sz
+  const scale=(sz-2)/SLOT_W;
+  const dw=Math.round(SLOT_W*scale), dh=Math.round(SLOT_W*scale);
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(comp,0,0,SLOT_W,SLOT_W,Math.round((sz-dw)/2),Math.round((sz-dh)/2),dw,dh);
+}
+
+// BOOT / HAND ITEM / COSMETIC DRAWING
+// These items use _icon.png variants with clean inventory sprites.
+//
+// IMPORTANT: player_feet*_icon.png stores boot rows with a gap:
+//   actual texture row = tex_y * 2  (rows 0,2,4,6 have content, rows 1,3,5,7 empty)
+// All other icon files (handitem, longhanditem, cosmetics) use tex_y directly.
+function drawBoot(ctx,item,sz){
+  const img=getImg(item.file_name);
+  const fn=(item.file_name||'').toLowerCase();
+  const isFeet=fn.includes('player_feet');
+  const doRender=()=>{
+    if(!img||!img.complete||!img.naturalWidth){drawQmark(ctx,sz);return;}
+    const tx=item.tex_x;
+    const ty=isFeet ? item.tex_y*2 : item.tex_y;
+    const px=tx*TILE, py=ty*TILE;
+    if(px+TILE>img.naturalWidth||py+TILE>img.naturalHeight){drawQmark(ctx,sz);return;}
+    const vis=regionVisible(img,px,py,TILE,TILE);
+    if(vis<BLANK_THRESHOLD){drawQmark(ctx,sz);return;}
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(img,px,py,TILE,TILE,0,0,sz,sz);
+  };
+  if(!img){drawQmark(ctx,sz);return;}
+  if(img.complete&&img.naturalWidth){doRender();}
+  else{drawQmark(ctx,sz);hookImgLoad(img,item.file_name);}
+}
+
+// Draw the question mark fallback (tile 12,7 from tiles_page1)
+function drawQmark(ctx,sz){
+  const p1=SPRITES['tiles_page1.png']||getImg('tiles_page1.rttex');
+  if(p1&&p1.complete&&p1.naturalWidth){
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(p1,12*TILE,7*TILE,TILE,TILE,0,0,sz,sz);
+  } else {
+    // Solid colour placeholder while tiles_page1 loads
+    ctx.fillStyle='#1e2736';ctx.fillRect(0,0,sz,sz);
+    ctx.fillStyle='rgba(255,255,255,.3)';
+    ctx.font=`bold ${Math.max(7,sz/4)}px monospace`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('?',sz/2,sz/2);
+    if(p1&&!p1.complete)p1.onload=()=>{ctx.clearRect(0,0,sz,sz);drawQmark(ctx,sz);};
+  }
+}
+
+
+// Per-canvas retry attempt counter
+const _retryCounts = new Map(); // canvasKey -> attempts
+const MAX_RETRIES = 8;
+
+function canvasKey(c){ return c.dataset.id+'_'+c.width; }
+
+function mkCanvas(item,sz){
+  const c=document.createElement('canvas');c.width=sz;c.height=sz;
+  c.dataset.id=item.id;
+  c.style.cssText=`width:${sz}px;height:${sz}px;image-rendering:pixelated`;
+  drawOn(c,item,sz);return c;
+}
+
+function redrawAllFor(item){
+  document.querySelectorAll(`canvas[data-id="${item.id}"]`).forEach(c=>{
+    const sz=c.width||48;drawOn(c,item,sz);
+  });
+}
+
+// Returns true if a canvas is still showing the ? fallback sprite.
+// The ? tile has a very specific color at its center pixel (yellowish/grey).
+// We also track canvases that were explicitly marked as needing retry.
+function canvasIsQmark(c){
+  try{
+    const ctx=c.getContext('2d');
+    const sz=c.width||48;
+    const mid=Math.floor(sz/2);
+    // Sample 9 pixels around center
+    const d=ctx.getImageData(mid-1,mid-1,3,3).data;
+    let vis=0;
+    for(let i=3;i<d.length;i+=4)if(d[i]>30)vis++;
+    // If center area is mostly transparent → still blank/loading
+    if(vis<3)return true;
+    // Also check corners — if top-left is fully transparent AND there are pixels
+    // in the center, it could be a legitimate sprite. If the whole canvas has
+    // very few pixels total, it's still a ? or blank.
+    const full=ctx.getImageData(0,0,sz,sz).data;
+    let total=0;
+    for(let i=3;i<full.length;i+=4)if(full[i]>20)total++;
+    return total < (sz*sz*0.04); // less than 4% filled = almost certainly ?/blank
+  }catch(e){return false;}
+}
+
+// Live sprite retry — runs frequently at first, then backs off.
+// Canvases showing ? get up to MAX_RETRIES redraw attempts.
+function startLiveSprites(){
+  if(RETRY_IV)clearInterval(RETRY_IV);
+  _retryCounts.clear();
+
+  let tick=0;
+  RETRY_IV=setInterval(()=>{
+    tick++;
+    // After 20 ticks (~10s) slow down to every 5 ticks
+    if(tick>20 && tick%5!==0)return;
+    // After 60 ticks (~30s) stop entirely
+    if(tick>60){clearInterval(RETRY_IV);RETRY_IV=null;return;}
+
+    document.querySelectorAll('canvas[data-id]').forEach(c=>{
+      const item=IDMAP[+c.dataset.id];if(!item)return;
+      const key=canvasKey(c);
+      const attempts=_retryCounts.get(key)||0;
+      if(attempts>=MAX_RETRIES)return; // gave up on this canvas
+
+      // Check if this canvas still needs a redraw
+      if(!canvasIsQmark(c))return;
+
+      // Try to draw — image may or may not be loaded yet
+      const img=getImg(item.file_name);
+      if(img&&!img.complete){
+        // Image is still loading — hook onload if not already done
+        if(!img._hookSet){
+          img._hookSet=true;
+          img.onload=()=>{
+            // When image finally loads, redraw ALL canvases for this file
+            document.querySelectorAll('canvas[data-id]').forEach(c2=>{
+              const it=IDMAP[+c2.dataset.id];
+              if(it&&fileNameToPng(it.file_name)===fileNameToPng(item.file_name)){
+                drawOn(c2,it,c2.width||48);
+                _retryCounts.delete(canvasKey(c2)); // reset counter on success
+              }
+            });
+          };
+          img.onerror=()=>{img._hookSet=false;}; // allow retry on error
+        }
+      } else {
+        // Image is loaded (or doesn't exist) — just redraw
+        drawOn(c,item,c.width||48);
+        _retryCounts.set(key,(attempts+1));
+      }
+    });
+  },500); // check every 500ms for responsive loading
+}
+
+/* ═══════════════════ SPRITE FULL VIEW ═══════════════════ */
+function openSpriteView(item){
+  const img=getImg(item.file_name);
+  const modal=document.getElementById('spriteModal');
+  const mc=document.getElementById('spriteModalCanvas');
+  const info=document.getElementById('spriteInfo');
+
+  const show=()=>{
+    // Determine display coordinates
+    const isFeet=(item.file_name||'').toLowerCase().includes('player_feet');
+    const isIcon=isIconItem(item);
+    let etx, ety;
+    if(isIcon){
+      etx=item.tex_x;
+      ety=isFeet ? item.tex_y*2 : item.tex_y;
+    } else {
+      const eff=getEffectiveTex(item);
+      etx=eff.tx; ety=eff.ty;
+    }
+    if(!img||!img.naturalWidth){
+      mc.width=128;mc.height=128;
+      drawOn(mc,item,128);
+      mc.style.width='128px';mc.style.height='128px';
+      info.textContent=`${item.name} · ${item.file_name||'no texture'} · sprite (${etx},${ety})`;
+      modal.classList.add('open');
+      return;
+    }
+    const scale=4;
+    const w=img.naturalWidth,h=img.naturalHeight;
+    mc.width=w*scale;mc.height=h*scale;
+    const ctx=mc.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(img,0,0,w*scale,h*scale);
+    // Highlight the effective (spread_type-corrected) tile
+    const hx=etx*TILE*scale,hy=ety*TILE*scale;
+    const hw=TILE*scale,hh=TILE*scale;
+    ctx.strokeStyle='#4ade80';ctx.lineWidth=3;
+    ctx.strokeRect(hx+1,hy+1,hw-2,hh-2);
+    // Also show raw tile in yellow if different
+    if(etx!==item.tex_x||ety!==item.tex_y){
+      ctx.strokeStyle='rgba(251,191,36,0.6)';ctx.lineWidth=2;
+      ctx.strokeRect(item.tex_x*TILE*scale+1,item.tex_y*TILE*scale+1,hw-2,hh-2);
+    }
+    const maxW=window.innerWidth*0.88,maxH=window.innerHeight*0.78;
+    const dispScale=Math.min(maxW/(w*scale),maxH/(h*scale),1);
+    mc.style.width=Math.round(w*scale*dispScale)+'px';
+    mc.style.height=Math.round(h*scale*dispScale)+'px';
+    const rawStr=(etx!==item.tex_x||ety!==item.tex_y)?` [raw:(${item.tex_x},${item.tex_y})]`:'';
+    info.textContent=`${item.name} · ${item.file_name} · tile (${etx},${ety})${rawStr} · spread_type ${item.visual_type} · ${w}×${h}px`;
+    modal.classList.add('open');
+  };
+
+  if(!img){const i2=getImg(item.file_name);if(i2&&!i2.complete){i2.onload=show;show();}else show();}
+  else if(img.complete)show();
+  else img.onload=show;
+}
+
+function closeSpriteModal(){document.getElementById('spriteModal').classList.remove('open');}
+
+/* ═══════════════════ SEARCH ═══════════════════ */
+let _st;
+document.addEventListener('DOMContentLoaded',()=>{
+  const sb=document.getElementById('sbox');
+  sb.addEventListener('input',()=>{clearTimeout(_st);_st=setTimeout(()=>{const q=sb.value.trim();doSearch(q);buildAC(q);},110);});
+  sb.addEventListener('keydown',e=>{
+    const ac=document.getElementById('acdrop');
+    const els=[...ac.querySelectorAll('.ac-item')];
+    if(e.key==='ArrowDown'){ACI=Math.min(ACI+1,els.length-1);hilite(els);e.preventDefault();}
+    if(e.key==='ArrowUp'){ACI=Math.max(ACI-1,-1);hilite(els);e.preventDefault();}
+    if(e.key==='Enter'&&ACI>=0&&els[ACI])els[ACI].click();
+    if(e.key==='Escape'){ac.style.display='none';ACI=-1;}
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('acdrop').style.display='none';});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeSpriteModal();}});
+});
+function hilite(els){els.forEach((el,i)=>el.classList.toggle('sel',i===ACI));}
+
+function buildAC(q){
+  const ac=document.getElementById('acdrop');
+  if(!q||q.length<2){ac.style.display='none';return;}
+  const hits=ITEMS.filter(it=>it.name.toLowerCase().includes(q.toLowerCase())).slice(0,10);
+  if(!hits.length){ac.style.display='none';return;}
+  ACI=-1;ac.innerHTML='';
+  hits.forEach(item=>{
+    const d=document.createElement('div');d.className='ac-item';
+    const c=mkCanvas(item,28);c.style.cssText='width:28px;height:28px;image-rendering:pixelated;border-radius:5px;flex-shrink:0';
+    d.appendChild(c);
+    const info=document.createElement('div');
+    info.innerHTML=`<div class="ac-name">${item.name}</div><div class="ac-sub">ID ${item.id} · rarity ${item.rarity}</div>`;
+    d.appendChild(info);
+    d.addEventListener('click',()=>{document.getElementById('sbox').value=item.name;ac.style.display='none';doSearch(item.name);selectItem(item);});
+    ac.appendChild(d);
+  });
+  ac.style.display='block';
+}
+
+function doSearch(q){
+  if(!ITEMS.length)return;
+  if(!q){CUR_RESULTS=ITEMS;CUR_PAGE=1;showGrid();return;}
+  const ql=q.toLowerCase();
+  const byId=!isNaN(q)?ITEMS.filter(it=>it.id===+q):[];
+  const exact=ITEMS.filter(it=>it.name.toLowerCase()===ql);
+  const starts=ITEMS.filter(it=>it.name.toLowerCase().startsWith(ql)&&it.name.toLowerCase()!==ql);
+  const rest=ITEMS.filter(it=>it.name.toLowerCase().includes(ql)&&!it.name.toLowerCase().startsWith(ql));
+  CUR_RESULTS=[...new Set([...byId,...exact,...starts,...rest])];
+  CUR_PAGE=1;showGrid(q);
+  if(exact.length===1)selectItem(exact[0]);
+}
+
+/* ═══════════════════ GRID + PAGINATION ═══════════════════ */
+function showGrid(q=''){
+  const el=document.getElementById('results');
+  const total=CUR_RESULTS.length;
+  if(!total){el.innerHTML=`<div class="empty"><div class="ico">🔍</div><p>No items found${q?' for "'+q+'"':''}</p></div>`;return;}
+  const totalPages=Math.ceil(total/PAGE_SIZE);
+  const start=(CUR_PAGE-1)*PAGE_SIZE;
+  const pageItems=CUR_RESULTS.slice(start,start+PAGE_SIZE);
+  const lbl=q?`<span>${total}</span> result${total!==1?'s':''} for "${q}"`:`All <span>${total}</span> items`;
+  const pgTop=renderPagination(CUR_PAGE,totalPages);
+  const pgBot=totalPages>1?renderPagination(CUR_PAGE,totalPages):'';
+  let g='<div class="grid">';
+  pageItems.forEach(item=>{
+    const isCk=CHECKED.has(item.id),isBm=BOOKMARKS.has(item.id);
+    g+=`<div class="gcard${SEL&&SEL.id===item.id?' active':''}${isCk?' checked-item':''}" data-id="${item.id}">
+      <div class="g-rar">${item.rarity}</div>
+      <div class="g-bm${isBm?' on':''}" data-bm="${item.id}">🔖</div>
+      <canvas class="g-ico" data-id="${item.id}" width="48" height="48"></canvas>
+      <div class="g-name">${item.name}</div>
+      <div class="g-id">#${item.id}</div>
+      <div class="g-ck${isCk?' checked':''}" data-ck="${item.id}">✓</div>
+    </div>`;
+  });
+  g+='</div>';
+  el.innerHTML=`<div class="r-header">${lbl} · page ${CUR_PAGE}/${totalPages}</div>${pgTop}${g}${pgBot}`;
+
+  requestAnimationFrame(()=>{
+    el.querySelectorAll('canvas[data-id]').forEach(c=>{const it=IDMAP[+c.dataset.id];if(it)drawOn(c,it,48);});
+    el.querySelectorAll('.gcard').forEach(card=>{
+      card.addEventListener('click',e=>{
+        if(e.target.classList.contains('g-bm')||e.target.classList.contains('g-ck'))return;
+        const it=IDMAP[+card.dataset.id];if(it)selectItem(it);
+      });
+    });
+    el.querySelectorAll('.g-bm').forEach(btn=>{
+      btn.addEventListener('click',e=>{e.stopPropagation();const id=+btn.dataset.bm;toggleBM(id);btn.classList.toggle('on',BOOKMARKS.has(id));});
+    });
+    el.querySelectorAll('.g-ck').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        e.stopPropagation();const id=+btn.dataset.ck;toggleCK(id);
+        btn.classList.toggle('checked',CHECKED.has(id));
+        btn.closest('.gcard').classList.toggle('checked-item',CHECKED.has(id));
+        updateDetailCK();renderBookmarks();
+      });
+    });
+  });
+}
+
+function renderPagination(cur,total){
+  if(total<=1)return'';
+  let h='<div class="pagination">';
+  h+=`<button class="pg-btn" ${cur===1?'disabled':''} onclick="goPage(${cur-1})">‹</button>`;
+  const pages=[];
+  if(total<=7){for(let i=1;i<=total;i++)pages.push(i);}
+  else{pages.push(1);if(cur>3)pages.push('…');for(let i=Math.max(2,cur-1);i<=Math.min(total-1,cur+1);i++)pages.push(i);if(cur<total-2)pages.push('…');pages.push(total);}
+  pages.forEach(p=>{
+    if(p==='…')h+=`<span class="pg-ellipsis">…</span>`;
+    else h+=`<button class="pg-btn${p===cur?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  });
+  h+=`<button class="pg-btn" ${cur===total?'disabled':''} onclick="goPage(${cur+1})">›</button></div>`;
+  return h;
+}
+function goPage(p){CUR_PAGE=p;const q=document.getElementById('sbox').value.trim();showGrid(q);document.getElementById('results').scrollTop=0;}
+
+/* ═══════════════════ BOOKMARKS ═══════════════════ */
+function toggleBM(id){
+  if(BOOKMARKS.has(id))BOOKMARKS.delete(id);else BOOKMARKS.add(id);
+  saveBM();renderBookmarks();
+  const flag=document.querySelector('.bm-flag');
+  if(flag&&SEL&&SEL.id===id){flag.classList.toggle('on',BOOKMARKS.has(id));flag.textContent=BOOKMARKS.has(id)?'🔖':'🏳️';}
+}
+function toggleCK(id){if(CHECKED.has(id))CHECKED.delete(id);else CHECKED.add(id);saveCK();}
+function updateDetailCK(){
+  if(!SEL)return;
+  const el=document.getElementById('detail_ck');
+  if(el)el.classList.toggle('checked',CHECKED.has(SEL.id));
+}
+function renderBookmarks(){
+  const list=document.getElementById('bmList');if(!list)return;
+  if(BOOKMARKS.size===0){list.innerHTML='<div class="bm-empty">No bookmarks yet.<br>Click 🔖 on any item.</div>';return;}
+  const total=BOOKMARKS.size,ck=[...BOOKMARKS].filter(id=>CHECKED.has(id)).length;
+  const pct=total>0?Math.round(ck/total*100):0;
+  let h=`<div class="bm-progress"><div class="bm-prog-label">Progress</div><div class="bm-prog-bar"><div class="bm-prog-fill" style="width:${pct}%"></div></div><div class="bm-prog-text">${ck}/${total} obtained</div></div>`;
+  [...BOOKMARKS].forEach(id=>{
+    const item=IDMAP[id];if(!item)return;
+    const isCk=CHECKED.has(id);
+    h+=`<div class="bm-item" onclick="jumpTo('${esc(item.name)}')">
+      <canvas data-id="${id}" width="24" height="24" style="width:24px;height:24px;image-rendering:pixelated;border-radius:4px;flex-shrink:0"></canvas>
+      <div class="bm-item-name">${item.name}</div>
+      <div class="bm-ck${isCk?' checked':''}" onclick="event.stopPropagation();toggleCK(${id});renderBookmarks();updateDetailCK();">✓</div>
+      <div class="bm-remove" onclick="event.stopPropagation();removeBM(${id})">✕</div>
+    </div>`;
+  });
+  list.innerHTML=h;
+  requestAnimationFrame(()=>list.querySelectorAll('canvas[data-id]').forEach(c=>{const it=IDMAP[+c.dataset.id];if(it)drawOn(c,it,24);}));
+}
+function removeBM(id){BOOKMARKS.delete(id);saveBM();renderBookmarks();}
+function clearBookmarks(){if(!confirm('Clear all bookmarks?'))return;BOOKMARKS.clear();saveBM();renderBookmarks();}
+
+/* ═══════════════════ DETAIL PANEL ═══════════════════ */
+const TNAMES={0:'Fist',1:'Wrench',2:'Door',3:'Lock',4:'Gems',5:'Treasure',6:'Deadly',7:'Trampoline',8:'Consumable',9:'Door',10:'Sign',11:'BG Music',12:'Boombox',13:'Door',14:'Platform',15:'Background',16:'Seed',17:'Clothing',18:'Background',19:'Backpack',20:'Hair Dye',21:'Wrench',22:'Music Note',23:'Torch',24:'Fire',25:'Gate',26:'Switcheroo',27:'Crystal',28:'Crime',29:'Special',32:'Foreground',34:'Photo Frame',36:'Weather Machine',37:'Painting',38:'Foreground Block'};
+const LNAMES={0:'Background',1:'Foreground',2:'Both'};
+const CNAMES={0:'None',1:'Full Block',2:'Platform',3:'Special'};
+
+function selectItem(item){
+  SEL=item;
+  document.querySelectorAll('.gcard').forEach(c=>c.classList.toggle('active',+c.dataset.id===item.id));
+  const recipe=RDB[item.name],usedIn=USED_IN[item.name]||[];
+  const tn=TNAMES[item.type]||`Type ${item.type}`;
+  const ln=LNAMES[item.layer]??item.layer,cn=CNAMES[item.collision]??item.collision;
+  const isSeed=isSeedItem(item),isBoot=isBootItem(item);
+  const isCk=CHECKED.has(item.id),isBm=BOOKMARKS.has(item.id);
+  const useOff=getOffset(item.id);
+  let rarLbl='Common';
+  if(item.rarity>=100)rarLbl='Rare';else if(item.rarity>=50)rarLbl='Uncommon';else if(item.rarity>=10)rarLbl='Occasional';
+
+  let h=`<div class="d-hero">
+    <span class="bm-flag${isBm?' on':''}" onclick="toggleBM(${item.id})">${isBm?'🔖':'🏳️'}</span>
+    <div id="dIconWrap" onclick="openSpriteView(IDMAP[${item.id}])" title="Click to view full spritesheet">
+      <canvas id="dIcon" data-id="${item.id}" width="96" height="96"></canvas>
+    </div>
+    <div class="d-name">${item.name}${isSeed?' 🌱':''}</div>
+    <div class="d-id">ID: ${item.id} &nbsp;·&nbsp; ${item.file_name||'no texture'}</div>
+    ${item.description&&item.description!=='No info.'?`<div class="d-desc">"${item.description}"</div>`:''}
+  </div><div class="d-body">`;
+
+  h+=`<div class="tags">
+    <span class="tag t-r">⭐ ${item.rarity} · ${rarLbl}</span>
+    <span class="tag t-t">${isSeed?'🌱 Seed':tn}</span>
+    <span class="tag t-l">${ln}</span>
+    ${item.collision>0?`<span class="tag t-c">${cn}</span>`:''}
+  </div>`;
+
+  // Obtained check
+  h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    <div id="detail_ck" class="g-ck${isCk?' checked':''}" style="position:static;width:16px;height:16px;font-size:10px"
+      onclick="toggleCK(${item.id});updateDetailCK();const q=document.getElementById('sbox').value.trim();showGrid(q);renderBookmarks();">✓</div>
+    <span style="font-size:12px;color:var(--muted2);font-weight:600">${isCk?'✅ Obtained':'Mark as obtained'}</span>
+  </div>`;
+
+  // Offset toggle (non-seed, non-boot only)
+  if(!isSeed&&!isBoot){
+    h+=`<div class="offset-row">
+      <button id="offBtn_${item.id}" class="offset-btn${useOff?' on':''}" onclick="toggleOffset(${item.id})">
+        ${useOff?'⊞ Offset sprite':'□ Base sprite'}
+      </button>
+      <span style="font-size:10px;color:var(--muted)">toggle variant</span>
+    </div>`;
+  }
+
+  h+=`<div class="sec"><div class="sec-label">KEY STATS</div><div class="sg">
+    <div class="si"><div class="sk">Hardness</div><div class="sv ${item.hardness>50?'r':item.hardness>20?'o':''}">${item.hardness}</div></div>
+    <div class="si"><div class="sk">Regen</div><div class="sv">${item.regen_time}s</div></div>
+    <div class="si"><div class="sk">Max Stack</div><div class="sv ${item.max_hold>=200?'g':''}">${item.max_hold}</div></div>
+    <div class="si"><div class="sk">Cook</div><div class="sv">${item.cook_time<0?'—':item.cook_time+'s'}</div></div>
+    <div class="si"><div class="sk">Spread Type</div><div class="sv c">${item.spread_type}</div></div>
+    <div class="si"><div class="sk">Sprite XY (raw)</div><div class="sv c">${item.tex_x}, ${item.tex_y}</div></div>
+    <div class="si"><div class="sk">Sprite XY (eff)</div><div class="sv c">${getEffectiveTex(item).tx}, ${getEffectiveTex(item).ty}</div></div>
+    <div class="si"><div class="sk">Bloom</div><div class="sv">${item.bloom_time||'—'}</div></div>
+  </div></div>`;
+
+  if(isSeed||item.seed1||item.seed2){
+    h+=`<div class="sec"><div class="sec-label">SEED / TREE</div><div class="sg">
+      <div class="si"><div class="sk">Seed 1</div><div class="sv p">${item.seed1}</div></div>
+      <div class="si"><div class="sk">Seed 2</div><div class="sv p">${item.seed2}</div></div>
+      <div class="si"><div class="sk">Tree Base</div><div class="sv">${item.tree_base}</div></div>
+      <div class="si"><div class="sk">Tree Over</div><div class="sv">${item.tree_over}</div></div>
+    </div></div>`;
+  }
+
+  const flds=[['ID',item.id],['Properties',item.properties],['Type',`${item.type} (${tn})`],['Material',item.material],['Spread Type',item.spread_type],['Visual Type',item.visual_type],['Layer',`${item.layer} (${ln})`],['Collision',`${item.collision} (${cn})`],['Clothing',item.clothing_type],['Regen',item.regen_time+'s'],['Cook',item.cook_time<0?'—':item.cook_time+'s'],['Anim MS',item.anim_ms],['BG Col',item.bg_col||'—'],['FG Col',item.fg_col||'—'],['Parent ID',item.parent_id],['Alt File',item.alt_file||'—']];
+  h+=`<div class="sec"><button class="exp-btn" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▾ Hide raw fields':'▸ Show raw fields'">▸ Show raw fields</button>
+    <div class="raw-stats">${flds.map(([k,v])=>`<div class="raw-row"><span class="rk">${k}</span><span class="rv">${v}</span></div>`).join('')}</div></div>`;
+
+  if(recipe){
+    const[a,b]=recipe;const ia=IMAP[a],ib=IMAP[b];
+    const cA=`<div class="r-chip${ia?'':' base'}"${ia?` onclick="jumpTo('${esc(a)}')"`:''}>
+      ${ia?`<canvas data-id="${ia.id}" width="20" height="20" style="width:20px;height:20px;image-rendering:pixelated;border-radius:3px"></canvas>`:''}${a}</div>`;
+    const cB=`<div class="r-chip${ib?'':' base'}"${ib?` onclick="jumpTo('${esc(b)}')"`:''}>
+      ${ib?`<canvas data-id="${ib.id}" width="20" height="20" style="width:20px;height:20px;image-rendering:pixelated;border-radius:3px"></canvas>`:''}${b}</div>`;
+    h+=`<div class="sec"><div class="sec-label">RECIPE</div>
+      <div class="recipe-eq">${cA}<span class="op">+</span>${cB}<span class="eq-sym">=</span><span style="color:var(--gold);font-weight:900;font-size:11px">🌱 ${item.name}</span></div></div>`;
+    h+=`<div class="sec"><div class="sec-label">RECIPE TREE</div>
+      <div class="tree-toggle">
+        <button class="tt-btn${TREE_MODE==='text'?' active':''}" onclick="setTreeMode('text',${item.id})">📋 Text</button>
+        <button class="tt-btn${TREE_MODE==='visual'?' active':''}" onclick="setTreeMode('visual',${item.id})">🌳 Visual</button>
+        <button class="tt-btn" onclick="openTreeModal(${item.id})">⛶ Expand</button>
+      </div>
+      <div id="treeDisplay_${item.id}"></div></div>`;
+  } else {
+    h+=`<div class="sec"><div class="sec-label">RECIPE</div>
+      <div style="color:var(--muted);font-size:12px;padding:5px 0">${isSeed?'🌱 Base seed':'No recipe found.'}</div></div>`;
+  }
+
+  if(usedIn.length){
+    h+=`<div class="sec"><div class="sec-label">USED IN (${usedIn.length})</div>
+      <div class="ui-chips">${usedIn.map(n=>`<span class="ui-chip" onclick="jumpTo('${esc(n)}')">${n}</span>`).join('')}</div></div>`;
+  }
+  h+='</div>';
+  document.getElementById('detail').innerHTML=h;
+
+  requestAnimationFrame(()=>{
+    document.getElementById('detail').querySelectorAll('canvas[data-id]').forEach(c=>{
+      const it=IDMAP[+c.dataset.id];if(it)drawOn(c,it,c.width||48);
+    });
+    if(recipe)renderTreeIn(`treeDisplay_${item.id}`,item,TREE_MODE);
+  });
+}
+
+function toggleOffset(id){
+  // Toggle: false->true, true->false
+  const current=getOffset(id);
+  OFFSET_STATE[id]=!current;
+  saveOff();
+  const item=IDMAP[id];if(!item)return;
+  const btn=document.getElementById(`offBtn_${id}`);
+  const now=getOffset(id);
+  if(btn){btn.classList.toggle('on',now);btn.textContent=now?'⊞ Offset variant':'□ Base sprite';}
+  // Force full redraw of all canvases showing this item
+  document.querySelectorAll(`canvas[data-id="${id}"]`).forEach(c=>{
+    c.width=c.width; // reset clears the canvas
+    drawOn(c,item,c.width||48);
+  });
+}
+
+
+/* ═══════════════════ TREES ═══════════════════ */
+function setTreeMode(mode,itemId){
+  TREE_MODE=mode;
+  document.querySelectorAll('.tt-btn').forEach(b=>{
+    if(b.textContent.includes('Text'))b.classList.toggle('active',mode==='text');
+    else if(b.textContent.includes('Visual'))b.classList.toggle('active',mode==='visual');
+  });
+  const item=IDMAP[itemId];if(item)renderTreeIn(`treeDisplay_${itemId}`,item,mode);
+}
+
+function renderTreeIn(cid,item,mode){
+  const el=document.getElementById(cid);if(!el)return;
+  if(mode==='visual'){
+    el.innerHTML='';
+    const canvas=buildVTreeCanvas(item);
+    el.appendChild(canvas);
+  } else {
+    el.innerHTML=`<div class="text-tree">${buildTextTree(item.name,new Set(),0)}</div>`;
+    initTextTreeSprites(el);
+  }
+}
+
+/* TEXT TREE */
+function buildTextTree(name,visited,depth){
+  if(depth>12||visited.has(name))return'';
+  const r=RDB[name];if(!r)return'';
+  const v=new Set(visited);v.add(name);
+  return r.map(ing=>{
+    const isBase=!RDB[ing],item=IMAP[ing],id=item?.id;
+    const isCk=id&&CHECKED.has(id);
+    const isFl=item&&isFlammable(item);
+    const click=item?`onclick="jumpTo('${esc(ing)}')" style="cursor:pointer"`:'';
+    const ckH=id?`<span class="tcheck${isCk?' checked':''}" onclick="event.stopPropagation();toggleCK(${id});this.classList.toggle('checked',CHECKED.has(${id}));">${isCk?'✓':''}</span>`:'';
+    // Sprite canvas for this item
+    const sprH=id?`<canvas class="tsprite" data-id="${id}" width="16" height="16" style="width:16px;height:16px;image-rendering:pixelated;border-radius:3px;vertical-align:middle;flex-shrink:0;border:1px solid var(--border)"></canvas>`:'<span style="display:inline-block;width:16px;height:16px;vertical-align:middle;background:var(--border);border-radius:3px;flex-shrink:0"></span>';
+    const flH=isFl?`<span title="Flammable" style="color:var(--orange);font-size:9px;font-weight:700;margin-left:4px">(f)</span>`:'';
+    return `<div class="tnode" style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">${ckH}${sprH}<span class="tname" ${click}>${ing}</span>${flH}${isBase?`<span class="tbase-label">base</span>`:''}${!isBase?`<div style="padding-left:4px;width:100%">${buildTextTree(ing,v,depth+1)}</div>`:''}</div>`;
+  }).join('');
+}
+
+// After text tree is rendered, draw sprites into all .tsprite canvases
+function initTextTreeSprites(el){
+  if(!el)return;
+  requestAnimationFrame(()=>{
+    el.querySelectorAll('canvas.tsprite[data-id]').forEach(c=>{
+      const item=IDMAP[+c.dataset.id];if(item)drawOn(c,item,16);
+    });
+  });
+}
+
+/* VISUAL TREE — canvas-based with drag support */
+function buildVTreeCanvas(rootItem){
+  // Layout constants
+  const CARD_W=76,CARD_H=76,TILE_SZ=38,H_GAP=20,V_GAP=52,PAD=24;
+
+  // Each node: {item, name, depth, isBase, isPlus, x, y}
+  // Edges: {x1,y1,x2,y2}
+  const allNodes=[];
+  const allEdges=[];
+
+  // Step 1: Build tree structure with subtree widths
+  function buildTree(name,visited,depth){
+    if(depth>7||visited.has(name))return null;
+    const v2=new Set(visited); v2.add(name);
+    const item=IMAP[name]||{id:-1,name,type:0,tex_x:0,tex_y:0,file_name:'',rarity:0,clothing_type:0,bloom_time:0};
+    const recipe=RDB[name];
+    const isBase=!recipe||depth>=7;
+    const node={name,item,depth,isBase,subW:0,children:[]};
+    if(!isBase){
+      const[aName,bName]=recipe;
+      const cA=buildTree(aName,v2,depth+1);
+      const cB=buildTree(bName,v2,depth+1);
+      if(cA)node.children.push(cA);
+      if(cB)node.children.push(cB);
+    }
+    // subW = total width this subtree needs
+    if(node.children.length===0){
+      node.subW=CARD_W;
+    } else {
+      // Two children: A [+] B
+      const wA=node.children[0]?node.children[0].subW:CARD_W;
+      const wB=node.children[1]?node.children[1].subW:CARD_W;
+      node.subW=wA+H_GAP+20+H_GAP+wB; // 20 = plus sign width
+    }
+    return node;
+  }
+
+  // Step 2: Assign absolute x,y based on subtree widths
+  function assignPos(node,left){
+    if(!node)return;
+    const y=PAD+node.depth*(CARD_H+V_GAP);
+    if(node.children.length===0){
+      // Leaf: center in its subW
+      node.x=left+(node.subW-CARD_W)/2;
+      node.y=y;
+    } else {
+      const cA=node.children[0], cB=node.children[1];
+      const wA=cA?cA.subW:CARD_W;
+      const wB=cB?cB.subW:CARD_W;
+      // Assign children positions first
+      const leftA=left;
+      const leftB=left+wA+H_GAP+20+H_GAP;
+      if(cA)assignPos(cA,leftA);
+      if(cB)assignPos(cB,leftB);
+      // Parent centered over its two children's centers
+      const cAcx=cA?(cA.x+CARD_W/2):(left+CARD_W/2);
+      const cBcx=cB?(cB.x+CARD_W/2):(leftB+CARD_W/2);
+      node.x=(cAcx+cBcx)/2-CARD_W/2;
+      node.y=y;
+      // Plus sign between children at midpoint below parent
+      const plusX=(cAcx+cBcx)/2;
+      const plusY=y+CARD_H+V_GAP/2;
+      allNodes.push({isPlus:true,x:plusX,y:plusY});
+    }
+    // Register node
+    allNodes.push(node);
+    // Add edges to children
+    if(node.children[0])allEdges.push({x1:node.x+CARD_W/2,y1:node.y+CARD_H,x2:node.children[0].x+CARD_W/2,y2:node.children[0].y});
+    if(node.children[1])allEdges.push({x1:node.x+CARD_W/2,y1:node.y+CARD_H,x2:node.children[1].x+CARD_W/2,y2:node.children[1].y});
+  }
+
+  const root=buildTree(rootItem.name,new Set(),0);
+  if(root)assignPos(root,PAD);
+
+  const totalW=Math.max(PAD*2,...allNodes.filter(n=>!n.isPlus).map(n=>n.x+CARD_W))+PAD;
+  const totalH=Math.max(PAD*2,...allNodes.filter(n=>!n.isPlus).map(n=>n.y+CARD_H))+PAD;
+
+  // Alias for paint function
+  const result={nodes:allNodes,edges:allEdges};
+
+  // Create canvas
+  const canvas=document.createElement('canvas');
+  canvas.id='vtreeCanvas';
+  canvas.width=totalW;canvas.height=totalH;
+  // Never squish - show at natural pixel size (scrollable horizontally)
+  canvas.style.width=totalW+'px';
+  canvas.style.height=totalH+'px';
+  canvas.style.display='block';
+
+  // Draw function
+  function paint(ctx,offsetX,offsetY,scale){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save();ctx.translate(offsetX,offsetY);ctx.scale(scale,scale);
+
+    // Draw edges
+    ctx.strokeStyle='#28364a';ctx.lineWidth=2/scale;
+    result.edges.forEach(e=>{
+      ctx.beginPath();ctx.moveTo(e.x1,e.y1);
+      // Bezier curve for smooth lines
+      const cy=(e.y1+e.y2)/2;
+      ctx.bezierCurveTo(e.x1,cy,e.x2,cy,e.x2,e.y2);
+      ctx.stroke();
+    });
+
+    // Draw nodes
+    result.nodes.forEach(n=>{
+      if(n.isPlus){
+        ctx.fillStyle='#7a8fa8';
+        ctx.font=`bold ${Math.round(16/Math.max(scale,0.4))}px sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('+',n.x,n.y);
+        return;
+      }
+      const{item,x,y,isBase,depth:d}=n;
+      const isCk=item.id>0&&CHECKED.has(item.id);
+      const isRoot=d===0;
+
+      // Card background
+      ctx.beginPath();
+      ctx.roundRect(x,y,CARD_W,CARD_H,10);
+      if(isRoot)ctx.fillStyle='rgba(251,191,36,.12)';
+      else if(isBase)ctx.fillStyle='rgba(74,222,128,.04)';
+      else ctx.fillStyle='#141920';
+      ctx.fill();
+
+      // Border
+      ctx.strokeStyle=isRoot?'#fbbf24':isBase?'rgba(74,222,128,.35)':'#28364a';
+      ctx.lineWidth=(isRoot?2.5:1)/scale;
+      ctx.stroke();
+
+      // Sprite - draw into card
+      const imgItem=IMAP[item.name]||item;
+      const spX=x+(CARD_W-TILE_SZ)/2;
+      const spY=y+4;
+      const sprImg=getImg(imgItem.file_name||'');
+      if(isSeedItem(imgItem)){
+        drawSeedSync(ctx,imgItem,spX,spY,TILE_SZ);
+      } else if(isIconItem(imgItem)){
+        // Icon items (feet/hand/cosmetics) — draw directly, apply tex_y*2 for player_feet
+        if(sprImg&&sprImg.complete&&sprImg.naturalWidth){
+          const isFeet=(imgItem.file_name||'').toLowerCase().includes('player_feet');
+          const itx=imgItem.tex_x*TILE;
+          const ity=(isFeet?imgItem.tex_y*2:imgItem.tex_y)*TILE;
+          if(itx+TILE<=sprImg.naturalWidth&&ity+TILE<=sprImg.naturalHeight){
+            const vis=regionVisible(sprImg,itx,ity,TILE,TILE);
+            if(vis>=BLANK_THRESHOLD){ctx.imageSmoothingEnabled=false;ctx.drawImage(sprImg,itx,ity,TILE,TILE,spX,spY,TILE_SZ,TILE_SZ);}
+            else drawQmarkDirect(ctx,spX,spY,TILE_SZ);
+          } else drawQmarkDirect(ctx,spX,spY,TILE_SZ);
+        } else {
+          drawQmarkDirect(ctx,spX,spY,TILE_SZ);
+          if(sprImg&&!sprImg.complete){sprImg.onload=()=>paint(ctx,panX,panY,zoom);}
+        }
+      } else if(sprImg&&sprImg.complete&&sprImg.naturalWidth){
+        ctx.imageSmoothingEnabled=false;
+        const{tx,ty}=getEffectiveTex(imgItem);
+        const tryDraw=(tx2,ty2)=>{
+          if(tx2*TILE+TILE<=sprImg.naturalWidth&&ty2*TILE+TILE<=sprImg.naturalHeight){
+            const vis=regionVisible(sprImg,tx2*TILE,ty2*TILE,TILE,TILE);
+            if(vis>=BLANK_THRESHOLD){ctx.drawImage(sprImg,tx2*TILE,ty2*TILE,TILE,TILE,spX,spY,TILE_SZ,TILE_SZ);return true;}
+          }
+          return false;
+        };
+        if(!tryDraw(tx,ty)&&(tx!==imgItem.tex_x||ty!==imgItem.tex_y))tryDraw(imgItem.tex_x,imgItem.tex_y);
+        else if(!tryDraw(tx,ty))drawQmarkDirect(ctx,spX,spY,TILE_SZ);
+      } else {
+        drawQmarkDirect(ctx,spX,spY,TILE_SZ);
+        if(sprImg&&!sprImg.complete){sprImg.onload=()=>paint(ctx,panX,panY,zoom);}
+      }
+
+      // Label
+      ctx.fillStyle=isBase?'#7a8fa8':'#dde6f0';
+      const fs=Math.max(7,Math.round(9/Math.max(scale,0.5)));
+      ctx.font=`${fs}px Outfit,sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='top';
+      const label=item.name.length>12?item.name.slice(0,11)+'…':item.name;
+      ctx.fillText(label,x+CARD_W/2,y+TILE_SZ+7);
+
+      // Checkbox — always visible in top-right corner, clickable
+      const ckSize=14;
+      const ckX=x+CARD_W-ckSize-4,ckY=y+4;
+      ctx.fillStyle=isCk?'#22c55e':'#1e2736';
+      ctx.strokeStyle=isCk?'#22c55e':'#28364a';
+      ctx.lineWidth=1/scale;
+      ctx.beginPath();ctx.roundRect(ckX,ckY,ckSize,ckSize,3);ctx.fill();ctx.stroke();
+      if(isCk){
+        ctx.fillStyle='#fff';
+        ctx.font=`bold ${Math.round(10/Math.max(scale,0.4))}px sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('✓',ckX+ckSize/2,ckY+ckSize/2);
+      }
+      // Flammable indicator
+      const realItem=IMAP[item.name];
+      if(realItem&&isFlammable(realItem)){
+        ctx.fillStyle='#fb923c';
+        ctx.font=`bold ${Math.max(7,Math.round(8/Math.max(scale,0.5)))}px sans-serif`;
+        ctx.textAlign='left';ctx.textBaseline='top';
+        ctx.fillText('(f)',x+3,y+3);
+      }
+      if(isBase){
+        ctx.fillStyle='rgba(74,222,128,.55)';
+        ctx.font=`${Math.max(6,Math.round(7/Math.max(scale,0.5)))}px Outfit,sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText('base',x+CARD_W/2,y+CARD_H-13);
+      }
+    });
+    ctx.restore();
+  }
+
+  function drawQmarkDirect(ctx,x,y,sz){
+    const p1=SPRITES['tiles_page1.png'];
+    if(p1&&p1.complete&&p1.naturalWidth){
+      ctx.imageSmoothingEnabled=false;
+      ctx.drawImage(p1,12*TILE,7*TILE,TILE,TILE,x,y,sz,sz);
+    } else {
+      ctx.fillStyle='#1e2736';ctx.fillRect(x,y,sz,sz);
+      ctx.fillStyle='rgba(255,255,255,.3)';ctx.font=`bold ${sz/3}px monospace`;
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',x+sz/2,y+sz/2);
+    }
+  }
+
+  function drawSeedSync(ctx,item,x,y,sz){
+    if(!SEED_IMG||!SEED_IMG.complete||!SEED_IMG.naturalWidth){drawQmarkDirect(ctx,x,y,sz);return;}
+    const SLOT_W=16,SLOT_H=16;
+    const baseSlot=item.seed_base||0;
+    const overSlot=item.seed_over||0;
+    const bgCol=decodeGTColor(item.bg_col||0);
+    const fgCol=decodeGTColor(item.fg_col||0);
+
+    function makeLayer(slot,row,col){
+      const oc=document.createElement('canvas');oc.width=SLOT_W;oc.height=SLOT_H;
+      const c2=oc.getContext('2d');
+      c2.drawImage(SEED_IMG,slot*SLOT_W,row*SLOT_H,SLOT_W,SLOT_H,0,0,SLOT_W,SLOT_H);
+      const id=c2.getImageData(0,0,SLOT_W,SLOT_H);const d=id.data;
+      const[tr,tg,tb]=col;
+      for(let i=0;i<d.length;i+=4){const g=d[i]/255;d[i]=Math.min(255,Math.round(tr*g*0.85));d[i+1]=Math.min(255,Math.round(tg*g*0.85));d[i+2]=Math.min(255,Math.round(tb*g*0.85));}
+      c2.putImageData(id,0,0);return oc;
+    }
+    const useBase=bgCol[0]+bgCol[1]+bgCol[2]>10;
+    const useFg=fgCol[0]+fgCol[1]+fgCol[2]>10;
+    const comp=document.createElement('canvas');comp.width=SLOT_W;comp.height=SLOT_W;
+    const cc=comp.getContext('2d');cc.imageSmoothingEnabled=false;
+    cc.drawImage(makeLayer(baseSlot,0,useBase?bgCol:[160,180,80]),0,0);
+    if(SEED_IMG.naturalHeight>=SLOT_H*2)cc.drawImage(makeLayer(overSlot,1,useFg?fgCol:[60,80,40]),0,0);
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(comp,0,0,SLOT_W,SLOT_W,x,y,sz,sz);
+  }
+
+  // Pan & zoom state
+  let panX=0,panY=0,zoom=1;
+  let dragging=false,lastX=0,lastY=0;
+
+  const ctx=canvas.getContext('2d');
+
+  function drawAllSprites(){paint(ctx,panX,panY,zoom);}
+  drawAllSprites();
+
+  // Schedule sprite redraws
+  const spriteTimer=setInterval(()=>{
+    let needRedraw=false;
+    result.nodes.forEach(n=>{
+      if(n.isPlus||!n.item)return;
+      const img=getImg(n.item.file_name||'');
+      if(img&&img.complete&&img.naturalWidth)needRedraw=true;
+    });
+    if(needRedraw){drawAllSprites();}
+  },500);
+
+  // Drag support
+  canvas.addEventListener('mousedown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;e.preventDefault();});
+  canvas.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    panX+=e.clientX-lastX;panY+=e.clientY-lastY;
+    lastX=e.clientX;lastY=e.clientY;
+    drawAllSprites();
+  });
+  canvas.addEventListener('mouseup',()=>dragging=false);
+  canvas.addEventListener('mouseleave',()=>dragging=false);
+
+  // Touch drag
+  canvas.addEventListener('touchstart',e=>{dragging=true;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;e.preventDefault();},{passive:false});
+  canvas.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    panX+=e.touches[0].clientX-lastX;panY+=e.touches[0].clientY-lastY;
+    lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
+    drawAllSprites();e.preventDefault();
+  },{passive:false});
+  canvas.addEventListener('touchend',()=>dragging=false);
+
+  // Scroll to zoom
+  canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const delta=e.deltaY>0?0.9:1.1;
+    zoom=Math.max(0.3,Math.min(3,zoom*delta));
+    drawAllSprites();
+  },{passive:false});
+
+  // Click on item nodes: checkbox area toggles check, rest jumps to item
+  canvas.addEventListener('click',e=>{
+    if(Math.abs(e.clientX-lastX)>4||Math.abs(e.clientY-lastY)>4)return; // was a drag
+    const rect=canvas.getBoundingClientRect();
+    const scaleX=canvas.width/rect.width,scaleY=canvas.height/rect.height;
+    const cx=(e.clientX-rect.left)*scaleX,cy=(e.clientY-rect.top)*scaleY;
+    const wx=(cx-panX)/zoom,wy=(cy-panY)/zoom;
+    for(const n of result.nodes){
+      if(n.isPlus)continue;
+      if(wx>=n.x&&wx<=n.x+CARD_W&&wy>=n.y&&wy<=n.y+CARD_H){
+        const it=IMAP[n.item.name||n.name];
+        // Check if click was in checkbox area (top-right 14x14px)
+        const ckSize=14, ckX=n.x+CARD_W-ckSize-4, ckY=n.y+4;
+        if(wx>=ckX&&wx<=ckX+ckSize&&wy>=ckY&&wy<=ckY+ckSize){
+          // Toggle checkbox
+          if(it){toggleCK(it.id);updateDetailCK();renderBookmarks();drawAllSprites();}
+        } else {
+          if(it)jumpTo(it.name);
+        }
+        break;
+      }
+    }
+  });
+
+  // Cleanup on removal
+  canvas._cleanup=()=>clearInterval(spriteTimer);
+
+  return canvas;
+}
+
+/* ═══════════════════ MODAL ═══════════════════ */
+function openTreeModal(itemId){
+  const item=IDMAP[itemId];if(!item)return;
+  document.getElementById('modalTitle').textContent=`Recipe tree: ${item.name}`;
+  const mt=document.getElementById('modalTree');mt.innerHTML='';
+  const tog=document.createElement('div');tog.className='tree-toggle';tog.style.marginBottom='12px';
+  ['📋 Text','🌳 Visual'].forEach(label=>{
+    const b=document.createElement('button');b.className='tt-btn';
+    const mode=label.includes('Text')?'text':'visual';
+    b.classList.toggle('active',TREE_MODE===mode);b.textContent=label;
+    b.onclick=()=>{TREE_MODE=mode;tog.querySelectorAll('.tt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+      renderModalTree(content,item,mode);};
+    tog.appendChild(b);
+  });
+  mt.appendChild(tog);
+  const content=document.createElement('div');content.id='modalContent';mt.appendChild(content);
+  renderModalTree(content,item,TREE_MODE);
+  document.getElementById('treeModal').classList.add('open');
+}
+
+function renderModalTree(el,item,mode){
+  el.innerHTML='';
+  if(mode==='visual'){
+    const canvas=buildVTreeCanvas(item);
+    canvas.style.width=canvas.width+'px';
+    canvas.style.height=canvas.height+'px';
+    el.appendChild(canvas);
+  } else {
+    el.innerHTML=`<div class="text-tree">${buildTextTree(item.name,new Set(),0)}</div>`;
+    initTextTreeSprites(el);
+  }
+}
+
+function closeModal(){
+  // Cleanup vtree canvas intervals
+  const cv=document.getElementById('modalContent')?.querySelector('canvas');
+  if(cv&&cv._cleanup)cv._cleanup();
+  document.getElementById('treeModal').classList.remove('open');
+}
+document.getElementById('treeModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+/* ═══════════════════ HELPERS ═══════════════════ */
+function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+function jumpTo(name){const it=IMAP[name];if(!it)return;document.getElementById('sbox').value=name;doSearch(name);selectItem(it);document.getElementById('detail').scrollTop=0;}
+
+</script>
+</body>
+</html>
