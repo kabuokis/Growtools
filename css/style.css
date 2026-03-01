@@ -20,6 +20,23 @@
     --tool-8: #d35400;
     --tool-9: #1abc9c;
     --tool-10: #e84393;
+    /* additional vars used by item browser page */
+    --bg: #090b0f;
+    --surface: #0f1318;
+    --card: #141920;
+    --border: #1e2736;
+    --border2: #28364a;
+    --green: #4ade80;
+    --green2: #22c55e;
+    --cyan: #38bdf8;
+    --gold: #fbbf24;
+    --orange: #fb923c;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --text: #dde6f0;
+    --muted: #4a5a72;
+    --muted2: #7a8fa8;
+    --px: 'Montserrat',sans-serif;
 }
 .tool-card[data-tool="admin-checker"] .tool-icon {
     background: linear-gradient(135deg, var(--tool-9), #16a085);
@@ -512,6 +529,12 @@ header {
 .nav-links a[href*="render-checker"] i {
     color: var(--tool-8);
 }
+
+/* Item Browser specific color (use tool-10 or create new variable if needed) */
+.nav-links a[href*="items"] i {
+    color: var(--tool-10);
+}
+
 .tool-card[data-tool="level-calculator"] .tool-icon {
     background: linear-gradient(135deg, var(--tool-5), #c0392b);
 }
