@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Block Mapper V3.4 - Exact Match Fix</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+  :root { --bg: #0a0c0f; --panel: #111418; --border: #1e2530; --accent: #00e5ff; --accent2: #ff6b35; --green: #00ff88; --text: #c8d8e8; --dim: #4a5a6a; --cell: #161b22; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Share Tech Mono', monospace; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; }
+  header { width: 100%; padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--panel); }
+  header h1 { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 900; color: var(--accent); letter-spacing: 0.15em; }
+  .main { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 24px 14px; width: 100%; max-width: 860px; }
+  .upload-zone { width: 100%; border: 2px dashed var(--border); border-radius: 4px; padding: 28px; text-align: center; cursor: pointer; background: var(--panel); }
+  #file-input { display: none; }
+  .editor-section { display: none; flex-direction: column; align-items: center; gap: 18px; width: 100%; }
+  .editor-section.visible { display: flex; }
+  .sec-label { font-size: 0.6rem; letter-spacing: 0.18em; color: var(--dim); text-transform: uppercase; align-self: flex-start; padding-bottom: 4px; border-bottom: 1px solid var(--border); width: 100%; }
+  .texture-strip { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; background: var(--panel); border: 1px solid var(--border); padding: 12px; max-height: 160px; overflow-y: auto; }
+  .thumb-wrap { position: relative; width: 48px; height: 48px; cursor: pointer; outline: 2px solid transparent; outline-offset: 2px; background: #000; }
+  .thumb-wrap canvas { width: 100%; height: 100%; image-rendering: pixelated; }
+  .thumb-wrap.selected { outline-color: var(--accent); z-index: 2; }
+  .thumb-wrap.done-mark { outline-color: var(--green); }
+  .thumb-wrap.is-main-tile { border: 2px solid var(--accent2); }
+  .check-overlay { position: absolute; top: -5px; right: -5px; background: var(--green); color: #000; font-size: 9px; font-weight: 900; width: 14px; height: 14px; border-radius: 50%; display: none; align-items: center; justify-content: center; z-index: 10; }
+  .thumb-wrap.done-mark .check-overlay { display: flex; }
+  .selected-display { display: flex; align-items: center; gap: 15px; background: var(--panel); border: 1px solid var(--border); padding: 12px; width: 100%; border-radius: 4px; }
+  .preview-box { width: 64px; height: 64px; background: #000; outline: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; }
+  #sel-preview { width: 64px; height: 64px; image-rendering: pixelated; }
+  .sel-info { flex: 1; }
+  .sel-name { display: block; color: var(--accent); font-size: 0.9rem; margin-bottom: 4px; }
+  .btn-group { display: flex; gap: 8px; }
+  .done-btn { background: var(--green); color: #000; border: none; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 0.7rem; cursor: pointer; border-radius: 2px; }
+  .main-btn { background: var(--accent2); color: #000; border: none; padding: 10px 16px; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 0.7rem; cursor: pointer; border-radius: 2px; }
+  .grid-editor { display: flex; flex-direction: column; align-items: center; margin: 10px 0; }
+  .grid-row { display: flex; }
+  .grid-cell { width: 64px; height: 64px; background: var(--cell); border: 1px solid var(--border); cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; }
+  .grid-cell canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
+  .grid-cell.main-cell { border: none; cursor: default; }
+  .grid-cell.main-cell::after { content: 'EDITING'; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 8px; color: var(--accent); position: absolute; z-index: 5; background: rgba(0,0,0,0.5); padding: 2px; }
+  .test-container { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; background: var(--panel); padding: 20px; border: 1px solid var(--border); }
+  .test-grid { display: flex; flex-direction: column; background: #000; }
+  .test-cell { width: 48px; height: 48px; border: 1px solid #111; cursor: crosshair; display: flex; align-items: center; justify-content: center; position: relative; }
+  .test-cell canvas { width: 100%; height: 100%; image-rendering: pixelated; }
+  .data-section { display: flex; gap: 10px; width: 100%; }
+  .json-box { flex: 2; background: #05070a; border: 1px solid var(--border); padding: 15px; position: relative; }
+  .json-box pre { font-size: 0.65rem; color: #7ec8e3; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+  .import-box { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  #import-input { background: var(--bg); border: 1px solid var(--border); color: var(--accent); font-family: 'Share Tech Mono'; font-size: 10px; padding: 8px; flex: 1; resize: none; }
+  .btn-sub { background: none; border: 1px solid var(--dim); color: var(--dim); padding: 6px; cursor: pointer; font-size: 10px; flex: 1; }
+  .btn-import { background: var(--accent2); color: #000; border: none; padding: 8px; cursor: pointer; font-family: 'Orbitron'; font-weight: 900; font-size: 10px; }
+</style>
+</head>
+<body>
+<header><h1>Block Mapper</h1><span style="font-size:10px; color:var(--dim)">V3.5 AXIS-AWARE MATCHING</span></header>
+<div class="main">
+  <label class="upload-zone" id="upload-zone" for="file-input"><p>⬡ UPLOAD TEXTURE SHEET</p><input type="file" id="file-input" accept="image/*"></label>
+  <div class="editor-section" id="editor-section">
+    <div class="sec-label">// PALETTE</div><div class="texture-strip" id="texture-strip"></div>
+    <div class="selected-display">
+      <div class="preview-box"><canvas id="sel-preview" width="32" height="32"></canvas></div>
+      <div class="sel-info"><span class="sel-name" id="sel-name">SELECT A TILE</span><span style="font-size:10px; color:var(--dim)" id="sel-meta">COORD: 0,0</span></div>
+      <div class="btn-group">
+          <button class="main-btn" onclick="setMainTile()">SET AS MAIN</button>
+          <button class="done-btn" onclick="markDoneAndNext()">DONE & NEXT →</button>
+      </div>
+    </div>
+    <div class="sec-label">// 3x3 RULES (PAINT NEIGHBORS)</div><div class="draw-palette" id="draw-palette" style="display:flex; gap:6px; flex-wrap:wrap; padding:8px; background:var(--panel); width:100%; border:1px solid var(--border); max-height:100px; overflow-y:auto;"></div><div class="grid-editor" id="grid-editor"></div>
+    <div class="sec-label">// 5x5 LIVE TEST</div><div class="test-container"><div class="test-grid" id="test-grid"></div><button class="btn-sub" onclick="clearTestGrid()">CLEAR TEST AREA</button></div>
+    <div class="sec-label">// DATA & IMPORT</div>
+    <div class="data-section">
+        <div class="json-box"><button class="btn-sub" style="position:absolute; right:10px; top:10px; width:auto;" onclick="copyJSON()">COPY</button><pre id="json-out">{}</pre></div>
+        <div class="import-box"><textarea id="import-input" placeholder="PASTE JSON HERE..."></textarea><button class="btn-import" onclick="importJSON()">RESTORE SESSION</button></div>
+    </div>
+  </div>
+</div>
+<script>
+const CELL = 32, TEST_SIZE = 5;
+let tiles = [], tileConfigs = [], doneTiles = new Set(), testGridState = Array(TEST_SIZE).fill().map(() => Array(TEST_SIZE).fill(false));
+let selectedIdx = 0, drawTileIdx = null, mainTileIdx = 0;
+const N_MAP = { '0,1':'top', '1,0':'left', '1,2':'right', '2,1':'bottom', '0,0':'top_left', '0,2':'top_right', '2,0':'bottom_left', '2,2':'bottom_right' };
+const REV_N_MAP = Object.fromEntries(Object.entries(N_MAP).map(([k,v]) => [v,k]));
+
+document.getElementById('file-input').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+            tiles = []; tileConfigs = []; doneTiles = new Set(); mainTileIdx = 0;
+            const cols = Math.floor(img.width/CELL), rows = Math.floor(img.height/CELL);
+            for (let r=0; r<rows; r++) { for (let c=0; c<cols; c++) {
+                const cv = document.createElement('canvas'); cv.width=CELL; cv.height=CELL;
+                cv.getContext('2d').drawImage(img, c*CELL, r*CELL, CELL, CELL, 0, 0, CELL, CELL);
+                tiles.push({ canvas: cv, col: c, row: r }); tileConfigs.push({});
+            }}
+            document.getElementById('editor-section').classList.add('visible'); initUI();
+        }; img.src = ev.target.result;
+    }; reader.readAsDataURL(f);
+});
+
+function initUI() { buildPalette(); buildDrawPalette(); buildGrid(); buildTestGrid(); selectTile(0); }
+function buildPalette() {
+    const strip = document.getElementById('texture-strip'); strip.innerHTML = '';
+    tiles.forEach((tile, i) => {
+        const wrap = document.createElement('div'); wrap.className = 'thumb-wrap'; wrap.id = `thumb-${i}`;
+        if(doneTiles.has(i)) wrap.classList.add('done-mark');
+        if(i === mainTileIdx) wrap.classList.add('is-main-tile');
+        wrap.innerHTML = `<div class="check-overlay">✓</div>`;
+        const cv = document.createElement('canvas'); cv.width=32; cv.height=32; cv.getContext('2d').drawImage(tile.canvas,0,0);
+        wrap.appendChild(cv); wrap.onclick = () => selectTile(i); strip.appendChild(wrap);
+    });
+}
+function selectTile(i) {
+    selectedIdx = i; document.querySelectorAll('.thumb-wrap').forEach(t => t.classList.remove('selected'));
+    document.getElementById(`thumb-${i}`).classList.add('selected');
+    const ctx = document.getElementById('sel-preview').getContext('2d'); ctx.clearRect(0,0,CELL,CELL); ctx.drawImage(tiles[i].canvas,0,0);
+    document.getElementById('sel-name').textContent = `BLOCK ${i}`; document.getElementById('sel-meta').textContent = `COORD: ${tiles[i].col}, ${tiles[i].row}`;
+    refreshGrid();
+}
+function setMainTile() {
+    mainTileIdx = selectedIdx;
+    document.querySelectorAll('.thumb-wrap').forEach(t => t.classList.remove('is-main-tile'));
+    document.getElementById(`thumb-${selectedIdx}`).classList.add('is-main-tile');
+    refreshTestGrid(); updateJSON();
+}
+function buildDrawPalette() {
+    const dp = document.getElementById('draw-palette'); dp.innerHTML = '<div class="draw-thumb eraser" id="draw-eraser" onclick="selectDrawTile(null)" style="width:32px;height:32px;background:var(--cell);display:flex;align-items:center;justify-content:center;color:var(--dim);border:1px solid var(--border);cursor:pointer;">⌫</div>';
+    tiles.forEach((tile, i) => {
+        const wrap = document.createElement('div'); wrap.className = 'draw-thumb'; wrap.id = `dtile-${i}`;
+        wrap.style.width="32px"; wrap.style.height="32px"; wrap.style.cursor="pointer"; wrap.style.outline="2px solid transparent";
+        const cv = document.createElement('canvas'); cv.width=32; cv.height=32; cv.style.width="100%"; cv.style.height="100%"; cv.style.imageRendering="pixelated";
+        cv.getContext('2d').drawImage(tile.canvas,0,0);
+        wrap.appendChild(cv); wrap.onclick = () => selectDrawTile(i); dp.appendChild(wrap);
+    });
+}
+function selectDrawTile(i) { drawTileIdx = i; document.querySelectorAll('.draw-thumb').forEach(el => el.style.outlineColor='transparent'); if(i===null) document.getElementById('draw-eraser').style.outlineColor='var(--accent2)'; else document.getElementById(`dtile-${i}`).style.outlineColor='var(--accent2)'; }
+function buildGrid() {
+    const container = document.getElementById('grid-editor'); container.innerHTML = '';
+    for (let r=0; r<3; r++) { const row = document.createElement('div'); row.className = 'grid-row'; for (let c=0; c<3; c++) {
+        const cell = document.createElement('div'); cell.className = 'grid-cell' + (r===1 && c===1 ? ' main-cell' : '');
+        cell.onclick = () => { if (r===1 && c===1) return; const k = `${r},${c}`; if (drawTileIdx===null) delete tileConfigs[selectedIdx][k]; else tileConfigs[selectedIdx][k] = drawTileIdx; refreshGrid(); updateJSON(); refreshTestGrid(); };
+        row.appendChild(cell);
+    } container.appendChild(row); }
+}
+function refreshGrid() {
+    const config = tileConfigs[selectedIdx], rows = document.getElementById('grid-editor').children;
+    for(let r=0; r<3; r++) { for(let c=0; c<3; c++) {
+        const cell = rows[r].children[c]; cell.querySelectorAll('canvas').forEach(cv => cv.remove());
+        const tIdx = (r===1 && c===1) ? selectedIdx : config[`${r},${c}`];
+        if (tIdx !== undefined) { const cv = document.createElement('canvas'); cv.width=32; cv.height=32; cv.getContext('2d').drawImage(tiles[tIdx].canvas,0,0); cell.appendChild(cv); }
+    }}
+}
+function buildTestGrid() {
+    const grid = document.getElementById('test-grid'); grid.innerHTML = '';
+    for(let r=0; r<TEST_SIZE; r++) { const row = document.createElement('div'); row.className = 'grid-row'; for(let c=0; c<TEST_SIZE; c++) {
+        const cell = document.createElement('div'); cell.className = 'test-cell'; cell.onclick = () => { testGridState[r][c] = !testGridState[r][c]; refreshTestGrid(); };
+        row.appendChild(cell);
+    } grid.appendChild(row); }
+}
+
+function refreshTestGrid() {
+    for(let r=0; r<TEST_SIZE; r++) {
+        for(let c=0; c<TEST_SIZE; c++) {
+            const cell = document.getElementById(`test-grid`).children[r].children[c];
+            cell.innerHTML = '';
+            if(testGridState[r][c]) {
+                const bestIdx = findBestTile(r, c);
+                const cv = document.createElement('canvas'); cv.width=32; cv.height=32;
+                cv.getContext('2d').drawImage(tiles[bestIdx].canvas, 0, 0);
+                cell.appendChild(cv);
+            }
+        }
+    }
+}
+
+// Direction groupings
+const EDGE_KEYS = new Set(['0,1', '1,0', '1,2', '2,1']);
+const HORIZ_KEYS = new Set(['1,0', '1,2']);           // left, right
+const VERT_KEYS  = new Set(['0,1', '2,1']);           // top, bottom
+const DIAG_KEYS  = new Set(['0,0','0,2','2,0','2,2']);
+
+const EDGE_WEIGHT = 10;
+const DIAG_WEIGHT = 1;
+
+function getWeight(k) {
+    return EDGE_KEYS.has(k) ? EDGE_WEIGHT : DIAG_WEIGHT;
+}
+
+// Determine which axes a rule "declares" — only those axes are checked for uncovered neighbors.
+// If a rule has NO horizontal keys, it doesn't care about left/right context (and vice versa).
+// Diagonals are only relevant when both H and V axes are declared.
+function getRuleAxes(ruleKeys) {
+    const set = new Set(ruleKeys);
+    const hasH = [...HORIZ_KEYS].some(k => set.has(k));
+    const hasV = [...VERT_KEYS].some(k => set.has(k));
+    const hasD = [...DIAG_KEYS].some(k => set.has(k));
+    return { hasH, hasV, hasD };
+}
+
+function findBestTile(r, c) {
+    // Build the full set of present neighbor keys
+    const presentNeighbors = new Set();
+    for(let dr=-1; dr<=1; dr++) {
+        for(let dc=-1; dc<=1; dc++) {
+            if(dr===0 && dc===0) continue;
+            const nr=r+dr, nc=c+dc;
+            if(nr>=0 && nr<TEST_SIZE && nc>=0 && nc<TEST_SIZE && testGridState[nr][nc]) {
+                presentNeighbors.add(`${dr+1},${dc+1}`);
+            }
+        }
+    }
+
+    let bestScore = -Infinity;
+    let bestIdx = mainTileIdx;
+
+    for(let i=0; i<tileConfigs.length; i++) {
+        const ruleKeys = Object.keys(tileConfigs[i]);
+        if(ruleKeys.length === 0) continue;
+
+        const ruleSet = new Set(ruleKeys);
+        const { hasH, hasV, hasD } = getRuleAxes(ruleKeys);
+
+        let score = 0;
+
+        // +weight for each rule key that IS present (match reward)
+        // -weight*2 for each rule key that is NOT present (hard requirement not met)
+        for(const rk of ruleKeys) {
+            if(presentNeighbors.has(rk)) {
+                score += getWeight(rk);
+            } else {
+                score -= getWeight(rk) * 2;
+            }
+        }
+
+        // Penalize uncovered present neighbors — BUT ONLY on axes this rule declares.
+        // A left/right-only rule is completely silent on top/bottom; don't punish it for vertical context.
+        for(const pk of presentNeighbors) {
+            if(ruleSet.has(pk)) continue; // already counted above
+
+            const isH = HORIZ_KEYS.has(pk);
+            const isV = VERT_KEYS.has(pk);
+            const isDiag = DIAG_KEYS.has(pk);
+
+            // Only penalize if this rule operates on this axis
+            if(isH && !hasH) continue;
+            if(isV && !hasV) continue;
+            if(isDiag && !hasD) continue;
+
+            score -= getWeight(pk);
+        }
+
+        if(score > bestScore) {
+            bestScore = score;
+            bestIdx = i;
+        }
+    }
+
+    // Only use a rule tile if it scores positively; otherwise fall back to main tile
+    return bestScore > 0 ? bestIdx : mainTileIdx;
+}
+
+function markDoneAndNext() { doneTiles.add(selectedIdx); document.getElementById(`thumb-${selectedIdx}`).classList.add('done-mark'); updateJSON(); refreshTestGrid(); if (selectedIdx < tiles.length - 1) selectTile(selectedIdx + 1); }
+function updateJSON() {
+    const data = {
+        mainTile: { col: tiles[mainTileIdx].col, row: tiles[mainTileIdx].row },
+        mappings: tiles.map((t, i) => {
+            const neighbors = {}; Object.entries(tileConfigs[i]).forEach(([k, nIdx]) => { neighbors[N_MAP[k]] = { col: tiles[nIdx].col, row: tiles[nIdx].row }; });
+            return { tile: { col: t.col, row: t.row }, neighbors };
+        })
+    };
+    document.getElementById('json-out').innerHTML = syntaxHL(JSON.stringify(data, null, 2));
+}
+function importJSON() {
+    try {
+        const raw = JSON.parse(document.getElementById('import-input').value);
+        const data = raw.mappings || raw; 
+        if(raw.mainTile) {
+            const mIdx = tiles.findIndex(t => t.col === raw.mainTile.col && t.row === raw.mainTile.row);
+            if(mIdx !== -1) mainTileIdx = mIdx;
+        }
+        doneTiles.clear();
+        data.forEach((entry, i) => {
+            if (i >= tileConfigs.length) return; tileConfigs[i] = {};
+            Object.entries(entry.neighbors).forEach(([side, coords]) => {
+                const nIdx = tiles.findIndex(t => t.col === coords.col && t.row === coords.row);
+                if (nIdx !== -1) tileConfigs[i][REV_N_MAP[side]] = nIdx;
+            });
+            if (Object.keys(tileConfigs[i]).length > 0) doneTiles.add(i);
+        }); buildPalette(); selectTile(0); updateJSON(); refreshTestGrid(); alert("RESTORED");
+    } catch(e) { alert("BAD JSON"); }
+}
+function clearTestGrid() { testGridState = Array(TEST_SIZE).fill().map(() => Array(TEST_SIZE).fill(false)); refreshTestGrid(); }
+function copyJSON() { navigator.clipboard.writeText(document.getElementById('json-out').innerText); }
+function syntaxHL(json) { return json.replace(/("(\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|-?\d+(?:\.\d*)?)/g, m => { let cls = 'jn'; if (/^"/.test(m)) cls = /:$/.test(m) ? 'jk' : 'js'; return `<span class="${cls}">${m}</span>`; }); }
+</script>
+</body>
+</html>

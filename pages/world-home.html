@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Planner - Growtools</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{
+  --bg:#0e1117;--darker:#090b0f;--dark:#111520;--card:#141c28;
+  --border:#1e2736;--border2:#28364a;
+  --primary:#5b8cff;--success:#4ade80;--warning:#fbbf24;--danger:#f87171;
+  --light:#dde6f0;--muted:#4a5a72;--muted2:#7a8fa8;
+  --tool-1:#5b8cff;--tool-2:#00c2ff;--tool-3:#4ade80;--tool-4:#f87171;
+  --tool-5:#fbbf24;--tool-6:#a78bfa;--tool-7:#34d399;--tool-8:#38bdf8;
+  --tool-9:#fb923c;
+  --tool-wp:#38bdf8;
+  --green:#4ade80;--cyan:#38bdf8;--gold:#fbbf24;--red:#f87171;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--light);font-family:'Montserrat',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+/* HEADER */
+header{position:relative;background-color:var(--darker);padding:10px 0;border-bottom:1px solid var(--border);flex-shrink:0;}
+.header-content{display:flex;justify-content:space-between;align-items:center;padding:0 1rem;}
+.header-right-content{display:flex;align-items:center;gap:20px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-img{height:44px;width:auto;}
+.logo-text{font-size:1.1rem;font-weight:700;color:var(--light);}
+.nav-link-custom{color:var(--light)!important;padding:8px 12px!important;border-radius:6px!important;transition:background-color 0.3s;font-size:0.875rem;text-decoration:none;display:flex;align-items:center;gap:5px;}
+.nav-link-custom:hover{background-color:rgba(255,255,255,0.05)!important;}
+.nav-link-custom.active{background-color:rgba(255,255,255,0.05)!important;color:var(--tool-wp)!important;}
+#dropdownNavbarLink{color:var(--light)!important;padding:8px 12px!important;border-radius:6px!important;transition:background-color 0.3s;font-size:0.875rem;display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;}
+#dropdownNavbar{background-color:var(--darker)!important;border:1px solid rgba(255,255,255,0.1)!important;box-shadow:0px 8px 16px 0px rgba(0,0,0,0.4)!important;}
+#dropdownNavbar a{color:var(--light)!important;font-size:0.875rem;}
+#dropdownNavbar a:hover{background-color:rgba(255,255,255,0.05)!important;}
+.visitor-count{list-style:none;display:flex;align-items:center;}
+@media(max-width:768px){.visitor-count{display:none;}}
+.icon-world-planner{color:var(--tool-wp)!important;}
+
+/* LAYOUT */
+.main-wrap{flex:1;}
+.content-area{padding:2rem 1rem;}
+.container{max-width:1000px;width:100%;margin:0 auto;padding:0 1rem;}
+
+/* TOOL HEADER */
+.tool-header{margin-bottom:1.5rem;}
+.tool-header h1{font-size:1.6rem;font-weight:700;color:var(--tool-wp);display:flex;align-items:center;gap:10px;}
+.tool-header p{color:var(--muted2);margin-top:6px;font-size:0.9rem;}
+
+/* CARD BOXES */
+.tool-content{background:var(--dark);border:1px solid var(--border);border-radius:10px;padding:22px;margin-bottom:20px;}
+.tool-section h2{color:var(--tool-wp);border-bottom:2px solid var(--tool-wp);padding-bottom:8px;margin-bottom:16px;font-size:1.05rem;font-weight:700;}
+.tool-section h3{color:var(--tool-wp);border-bottom:1px solid var(--border2);padding-bottom:5px;margin:14px 0 9px;font-size:0.9rem;font-weight:700;}
+.tool-section p{color:var(--muted2);font-size:0.875rem;line-height:1.7;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:7px;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .15s;text-decoration:none;font-family:'Montserrat',sans-serif;}
+.btn-primary{background:linear-gradient(to right,var(--tool-wp),#5b8cff);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-secondary{background:transparent;color:var(--muted2);border:1px solid var(--border2);}
+.btn-secondary:hover{border-color:var(--tool-wp);color:var(--tool-wp);}
+.btn-success{background:var(--success);color:#0a1208;}
+.btn-success:hover{filter:brightness(1.08);}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted2);}
+.btn-ghost:hover{border-color:var(--danger);color:var(--danger);}
+
+/* HERO */
+.hero-box{text-align:center;padding:30px 20px 24px;border-bottom:1px solid var(--border);margin-bottom:22px;}
+.hero-icon{font-size:46px;line-height:1;margin-bottom:10px;}
+.hero-box h2{font-size:1.4rem;font-weight:700;color:var(--tool-wp);margin-bottom:8px;}
+.hero-box p{color:var(--muted2);font-size:0.875rem;max-width:460px;margin:0 auto 18px;line-height:1.7;}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+/* SECTION LABEL */
+.sec-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* NEW WORLD PANEL */
+.new-panel{background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:20px;margin-bottom:4px;display:none;}
+.new-panel.open{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.new-panel-title{font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;}
+@media(max-width:600px){.cfg-grid{grid-template-columns:1fr 1fr;}}
+.cfg-group{display:flex;flex-direction:column;gap:5px;}
+.cfg-label{font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.07em;}
+.cfg-select,.cfg-input{background:var(--darker);border:1px solid var(--border2);color:var(--light);padding:8px 10px;border-radius:7px;font-size:12px;font-weight:600;outline:none;cursor:pointer;width:100%;font-family:'Montserrat',sans-serif;}
+.cfg-select:focus,.cfg-input:focus{border-color:var(--cyan);}
+.preset-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+@media(max-width:500px){.preset-cards{grid-template-columns:1fr 1fr;}}
+.preset-card{background:var(--darker);border:1px solid var(--border);border-radius:8px;padding:14px 10px;cursor:pointer;transition:all .14s;text-align:center;}
+.preset-card:hover{border-color:var(--border2);background:rgba(56,189,248,.05);}
+.preset-card.sel{border-color:var(--cyan);background:rgba(56,189,248,.08);}
+.preset-icon{font-size:22px;margin-bottom:5px;}
+.preset-name{font-size:11px;font-weight:700;color:var(--light);}
+.preset-desc{font-size:9px;color:var(--muted2);margin-top:3px;line-height:1.4;}
+.new-panel-foot{display:flex;gap:10px;justify-content:flex-end;padding-top:4px;}
+
+/* WORLD HISTORY */
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;}
+.world-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:15px;cursor:pointer;transition:all .14s;position:relative;overflow:hidden;}
+.world-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
+.wc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.wc-icon{width:36px;height:36px;border-radius:8px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.wc-name{font-size:12px;font-weight:700;color:var(--light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wc-date{font-size:10px;color:var(--muted2);}
+.wc-meta{display:flex;gap:7px;flex-wrap:wrap;}
+.wc-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid;}
+.wc-tag.sz{color:var(--cyan);border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.06);}
+.wc-tag.wp-tag{color:var(--gold);border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.06);}
+.wc-tag.bl{color:var(--green);border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.06);}
+.wc-del{position:absolute;top:7px;right:7px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:3px 5px;border-radius:4px;opacity:0;transition:all .12s;}
+.world-card:hover .wc-del{opacity:1;}
+.wc-del:hover{color:var(--danger);background:rgba(248,113,113,.1);}
+.empty-history{text-align:center;padding:40px;color:var(--muted);border:1px dashed var(--border2);border-radius:10px;}
+.empty-history p{font-size:12px;line-height:1.9;}
+.empty-history strong{color:var(--muted2);}
+
+/* FOOTER */
+footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 0 20px;}
+.footer-content{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-bottom:30px;}
+@media(max-width:600px){.footer-content{grid-template-columns:1fr;}}
+.footer-section h3{color:var(--light);font-size:1rem;font-weight:700;margin-bottom:12px;}
+.footer-section p{color:var(--muted2);font-size:0.85rem;line-height:1.6;}
+.footer-section a{display:block;color:var(--muted2);text-decoration:none;font-size:0.85rem;margin-bottom:7px;transition:color .15s;}
+.footer-section a:hover{color:var(--light);}
+.footer-section a i{margin-right:7px;width:14px;}
+.social-links{display:flex;margin-top:12px;}
+.social-links a{font-size:18px;color:var(--light);margin-right:16px;text-decoration:none;transition:all .2s;display:inline-block;}
+.social-links a:hover{color:var(--primary);transform:translateY(-3px);}
+.copyright{text-align:center;color:var(--muted);font-size:0.8rem;border-top:1px solid var(--border);padding-top:16px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container header-content">
+    <div class="logo">
+      <img src="../images/Water_Stone.png" alt="Growtools" class="logo-img" onerror="this.style.display='none'">
+      <span class="logo-text">Growtools</span>
+    </div>
+    <div class="header-right-content">
+      <button data-collapse-toggle="navbar-dropdown" type="button"
+        class="inline-flex items-center p-2 ms-3 w-10 h-10 justify-center text-sm rounded-lg md:hidden text-gray-400 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+        aria-controls="navbar-dropdown" aria-expanded="false">
+        <span class="sr-only">Open main menu</span>
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+        </svg>
+      </button>
+      <div class="hidden w-full md:block md:w-auto" id="navbar-dropdown">
+        <ul class="nav-links-flowbite flex flex-col font-medium p-4 mt-4 rounded-lg md:flex-row md:mt-0 md:text-sm md:border-0 md:space-x-2 md:rtl:space-x-reverse">
+          <li><a href="../index.html" class="nav-link-custom block"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="world-home.html" class="nav-link-custom active block" aria-current="page"><i class="fas fa-globe icon-world-planner"></i> World Planner</a></li>
+          <li><a href="dat-decoder.html" class="nav-link-custom block"><i class="fas fa-code" style="color:var(--tool-1)"></i> DAT Decoder</a></li>
+          <li><a href="data-mining.html" class="nav-link-custom block"><i class="fas fa-database" style="color:var(--tool-2)"></i> Data Mining</a></li>
+          <li><a href="rttex-converter.html" class="nav-link-custom block"><i class="fas fa-exchange-alt" style="color:var(--tool-3)"></i> RTTEX Converter</a></li>
+          <li><a href="item-browser.html" class="nav-link-custom block"><i class="fas fa-leaf" style="color:var(--tool-3)"></i> Item Browser</a></li>
+          <li>
+            <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar"
+              class="flex items-center justify-between w-full py-2 px-3 rounded-lg md:border-0 md:p-0 md:w-auto">
+              <i class="fas fa-cubes"></i> More Tools <i class="fas fa-chevron-down ms-3" style="font-size:12px;"></i>
+            </button>
+            <div id="dropdownNavbar" class="z-10 hidden font-normal divide-y divide-gray-600 rounded-lg shadow w-56">
+              <ul class="py-2 text-sm" aria-labelledby="dropdownNavbarLink">
+                <li><a href="account-checker.html" class="block px-4 py-2"><i class="fas fa-user-shield" style="color:var(--tool-4)"></i> Account Checker</a></li>
+                <li><a href="render-world.html" class="block px-4 py-2"><i class="fas fa-globe" style="color:var(--tool-8)"></i> World Renderer</a></li>
+                <li><a href="server-monitor.html" class="block px-4 py-2"><i class="fas fa-server" style="color:var(--tool-6)"></i> Server Monitor</a></li>
+                <li><a href="cache-checker.html" class="block px-4 py-2"><i class="fas fa-id-card" style="color:var(--tool-7)"></i> Cache Checker</a></li>
+                <li><a href="level-calculator.html" class="block px-4 py-2"><i class="fas fa-calculator" style="color:var(--tool-5)"></i> Level Calculator</a></li>
+                <li><a href="admin-checker.html" class="block px-4 py-2"><i class="fas fa-user-shield" style="color:var(--tool-9)"></i> Admin Checker</a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="visitor-count">
+        <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FxSkriptx%2FSkriptProxy&countColor=%23263759" alt="">
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="content-area">
+    <div class="container">
+
+      <div class="tool-header">
+        <h1><i class="fas fa-globe icon-world-planner"></i> World Planner</h1>
+        <p>Design, plan and visualise your Growtopia worlds with full autotiling, paint tools, wrench overrides and export support.</p>
+      </div>
+
+      <!-- Hero + New World -->
+      <div class="tool-content">
+        <div class="hero-box">
+          <div class="hero-icon">🌍</div>
+          <h2>Plan Your World</h2>
+          <p>Create detailed world layouts before building in-game. Pick blocks from the full item database, use presets, paint colour overlays and the wrench to fine-tune textures.</p>
+          <div class="hero-btns">
+            
+            <button class="btn btn-secondary" onclick="openEditor()">
+              <i class="fas fa-pencil-alt"></i> Open Editor
+            </button>
+          </div>
+        </div>
+
+        <!-- New World Config -->
+        <div class="new-panel" id="newPanel">
+          <div class="new-panel-title"><i class="fas fa-cog"></i> Configure New World</div>
+          <div class="cfg-grid">
+            <div class="cfg-group">
+              <span class="cfg-label">World Size</span>
+              <select class="cfg-select" id="cfgSize">
+                <option value="99x59" selected>99×59 (Standard)</option>
+                <option value="50x30">50×30 (Small)</option>
+                <option value="200x80">200×80 (Large)</option>
+              </select>
+            </div>
+            <div class="cfg-group">
+              <span class="cfg-label">Wallpaper</span>
+              <select class="cfg-select" id="cfgWp">
+                <option value="sunny" selected>☀️ Sunny</option>
+                <option value="none">🌑 None / Dark</option>
+              </select>
+            </div>
+            <div class="cfg-group">
+              <span class="cfg-label">World Name</span>
+              <input class="cfg-input" id="cfgName" type="text" placeholder="My World..." maxlength="32">
+            </div>
+          </div>
+          <div class="sec-label">Select Preset</div>
+          <div class="preset-cards">
+            <div class="preset-card sel" data-preset="normal" onclick="selPreset(this)">
+              <div class="preset-icon">🌿</div>
+              <div class="preset-name">Normal World</div>
+              <div class="preset-desc">Dirt, rocks, lava, bedrock &amp; main door</div>
+            </div>
+            <div class="preset-card" data-preset="clear" onclick="selPreset(this)">
+              <div class="preset-icon">🧱</div>
+              <div class="preset-name">Clear World</div>
+              <div class="preset-desc">Bedrock floor only</div>
+            </div>
+            <div class="preset-card" data-preset="empty" onclick="selPreset(this)">
+              <div class="preset-icon">⬜</div>
+              <div class="preset-name">Empty</div>
+              <div class="preset-desc">Completely blank canvas</div>
+            </div>
+          </div>
+          <div class="new-panel-foot">
+            <button class="btn btn-ghost" onclick="closeNewPanel()">Cancel</button>
+            <button class="btn btn-success" onclick="createWorld()">
+              <i class="fas fa-play"></i> Open in Editor
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Worlds -->
+      <div class="tool-content">
+        <div class="tool-section">
+          <h2><i class="fas fa-history"></i> Recent Worlds</h2>
+          <div id="historyContainer"><div class="empty-history"><p>Loading...</p></div></div>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="tool-content">
+        <div class="tool-section">
+          <h2><i class="fas fa-info-circle"></i> About World Planner</h2>
+          <p>World Planner lets you design Growtopia worlds on a canvas using the complete item database. Blocks autotile automatically based on their neighbours, you can paint transparent colour overlays using real in-game paint items, and use the wrench tool to manually pick any texture variant from a block's spritesheet.</p>
+          <h3>Tools &amp; Features</h3>
+          <p>Pencil, line, rectangle, circle and flood-fill drawing · Select / cut / copy / paste regions · Paint brush with in-game paint colours · Wrench texture override · Undo / redo (60 steps) · Grid and coordinate toggles · World presets · Export and import as JSON</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>About Growtools</h3>
+        <p>A collection of powerful utilities designed to help Growtopia players get the most out of their game experience.</p>
+        <div class="social-links">
+          <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fab fa-discord"></i></a>
+          <a href="https://www.youtube.com/channel/UCvoRNyYeWnmb1TojljTkdbA" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://github.com/xSkriptx/Growtools" target="_blank"><i class="fab fa-github"></i></a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h3>Tools</h3>
+        <a href="world-home.html"><i class="fas fa-globe"></i> World Planner</a>
+        <a href="dat-decoder.html"><i class="fas fa-code"></i> DAT Decoder</a>
+        <a href="data-mining.html"><i class="fas fa-database"></i> Data Mining</a>
+        <a href="rttex-converter.html"><i class="fas fa-exchange-alt"></i> RTTEX Converter</a>
+        <a href="account-checker.html"><i class="fas fa-user-shield"></i> Account Checker</a>
+        <a href="level-calculator.html"><i class="fas fa-calculator"></i> Level Calculator</a>
+        <a href="item-browser.html"><i class="fas fa-leaf"></i> Item Browser</a>
+      </div>
+      <div class="footer-section">
+        <h3>Support</h3>
+        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-envelope"></i> Contact Us</a>
+        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-question-circle"></i> FAQ</a>
+        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-bug"></i> Report Bug</a>
+        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-lightbulb"></i> Feature Request</a>
+      </div>
+    </div>
+    <div class="copyright">
+      &copy; 2025 Growtools. Not affiliated with Growtopia or Ubisoft. All Growtopia content is property of Ubisoft Entertainment.
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+<script>
+const LS_KEY = 'gt_wp_history';
+
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
+function saveHistory(h){ localStorage.setItem(LS_KEY, JSON.stringify(h)); }
+function countBlocks(world){
+  if(!world)return 0;
+  let n=0;
+  for(let l=0;l<2;l++) if(world[l]) for(const row of world[l]) for(const v of row) if(v!=null) n++;
+  return n;
+}
+function escHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderHistory(){
+  const h = loadHistory();
+  const el = document.getElementById('historyContainer');
+  if(!h.length){
+    el.innerHTML=`<div class="empty-history"><p>No saved worlds yet.<br><strong>Click "New World"</strong> to get started!</p></div>`;
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'history-grid';
+  h.forEach((w,i) => {
+    const d = new Date(w.ts||Date.now());
+    const dateStr = d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    const blocks = countBlocks(w.world);
+    const card = document.createElement('div');
+    card.className = 'world-card';
+    card.innerHTML = `
+      <button class="wc-del" title="Delete" onclick="deleteWorld(event,${i})">✕</button>
+      <div class="wc-top">
+        <div class="wc-icon">🌍</div>
+        <div style="min-width:0;flex:1;">
+          <div class="wc-name">${escHtml(w.name||'Unnamed')}</div>
+          <div class="wc-date">${dateStr}</div>
+        </div>
+      </div>
+      <div class="wc-meta">
+        <span class="wc-tag sz">${w.size?.w||100}×${w.size?.h||59}</span>
+        <span class="wc-tag wp-tag">${w.wp==='sunny'?'☀️':'🌑'} ${w.wp||'sunny'}</span>
+        <span class="wc-tag bl">${blocks} blocks</span>
+      </div>`;
+    card.addEventListener('click', e => { if(e.target.closest('.wc-del')) return; openWorld(i); });
+    grid.appendChild(card);
+  });
+  el.innerHTML = '';
+  el.appendChild(grid);
+}
+
+function deleteWorld(e,idx){
+  e.stopPropagation();
+  if(!confirm('Delete this world?')) return;
+  const h=loadHistory(); h.splice(idx,1); saveHistory(h); renderHistory();
+}
+
+function openWorld(idx){
+  const h=loadHistory(); const w=h[idx]; if(!w) return;
+  // Write to gt_wp_v4 preserving _isNew flag so editor applies preset if needed
+  localStorage.setItem('gt_wp_v4', JSON.stringify(w));
+  window.location.href = 'world-planner.html';
+}
+
+// ── New world ──
+let selPresetVal = 'normal';
+function openNewPanel(){ document.getElementById('newPanel').classList.add('open'); document.getElementById('newPanel').scrollIntoView({behavior:'smooth',block:'nearest'}); }
+function closeNewPanel(){ document.getElementById('newPanel').classList.remove('open'); }
+function selPreset(el){ document.querySelectorAll('.preset-card').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); selPresetVal=el.dataset.preset; }
+
+function createWorld(){
+  const sizeStr = document.getElementById('cfgSize').value;
+  const [w,h]   = sizeStr.split('x').map(Number);
+  const wp      = document.getElementById('cfgWp').value;
+  const name    = document.getElementById('cfgName').value.trim() || 'New World';
+  const ts      = Date.now();
+
+  const session = {
+    v:'5.0', name, size:{w,h}, wp, preset:selPresetVal, ts,
+    _isNew: true,   // editor will apply preset on first open
+    world: Array.from({length:2},()=>Array.from({length:h},()=>new Array(w).fill(null))),
+    paintLayer: Array.from({length:h},()=>new Array(w).fill(null)),
+    wrenchOverrides: Array.from({length:2},()=>Array.from({length:h},()=>new Array(w).fill(null)))
+  };
+
+  // Save to history only — do NOT redirect, do NOT touch gt_wp_v4
+  const hist = loadHistory();
+  hist.unshift(session);
+  if(hist.length > 20) hist.pop();
+  saveHistory(hist);
+
+  // Close panel and refresh list
+  closeNewPanel();
+  document.getElementById('cfgName').value = '';
+  renderHistory();
+
+  // Show confirmation
+  const msg = document.createElement('div');
+  msg.style.cssText = 'background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);color:#4ade80;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:700;margin-top:12px;text-align:center;';
+  msg.textContent = '✓ World "' + name + '" created! Click it below to open in the editor.';
+  document.querySelector('.tool-content').appendChild(msg);
+  setTimeout(()=>msg.remove(), 4000);
+}
+
+function openEditor(){ window.location.href = 'world-planner.html'; }
+
+window.addEventListener('storage', e => { if(e.key==='gt_wp_v4') renderHistory(); });
+renderHistory();
+</script>
+</body>
+</html>
