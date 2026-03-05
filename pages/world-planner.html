@@ -112,15 +112,26 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
 .pp-swatch.varnish{background:rgba(255,255,255,.08)!important;border:2px dashed var(--muted);}
 .pp-swatch.varnish::after{content:'✕';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted2);}
 /* ── WRENCH MODAL ── */
-.wrench-modal{display:none;position:fixed;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;z-index:700;box-shadow:0 16px 40px rgba(0,0,0,.7);max-width:340px;}
+.wrench-modal{display:none;position:fixed;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px;z-index:700;box-shadow:0 16px 40px rgba(0,0,0,.7);max-width:360px;min-width:220px;}
 .wrench-modal.open{display:block;}
 .wm-title{font-size:9px;font-weight:700;color:var(--muted2);letter-spacing:.1em;margin-bottom:8px;}
+.wm-states{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.wm-state-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;border-radius:6px;border:1px solid var(--border2);background:rgba(0,0,0,.3);color:var(--muted2);font-size:8px;font-weight:700;cursor:pointer;transition:all .1s;min-width:44px;}
+.wm-state-btn:hover,.wm-state-btn:active{border-color:var(--cyan);color:var(--cyan);}
+.wm-state-btn.active{border-color:var(--cyan);background:rgba(56,189,248,.12);color:var(--cyan);}
+.wm-state-btn canvas{image-rendering:pixelated;}
 .wm-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;max-height:220px;overflow-y:auto;}
 .wm-tile{width:32px;height:32px;border-radius:4px;cursor:pointer;border:2px solid transparent;image-rendering:pixelated;background:rgba(0,0,0,.4);transition:border-color .1s;}
 .wm-tile:hover{border-color:rgba(255,255,255,.4);}
 .wm-tile.sel{border-color:var(--cyan);}
 .wm-close{float:right;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;margin-left:8px;}
 .wm-close:hover{color:var(--red);}
+/* ── RENDER PROGRESS ── */
+.render-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.render-overlay.open{display:flex;}
+.render-bar-bg{width:260px;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.render-bar{height:100%;background:linear-gradient(to right,var(--cyan),var(--green));width:0%;transition:width .1s;}
+.render-label{font-size:11px;color:var(--muted2);font-weight:700;}
 </style>
 </head>
 <body>
@@ -140,6 +151,8 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
     <button class="tbtn"        id="tFill"     title="Fill (F)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11c0 5-7 11-7 11S5 16 5 11a7 7 0 0 1 14 0z"/><path d="M19 11h3"/><circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none"/></svg></button>
     <button class="tbtn"        id="tErase"    title="Erase (E)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l10-10 7 7-3.5 3.5"/><path d="M6.5 17.5l4-4"/></svg></button>
     <button class="tbtn"        id="tEyedrop"  title="Eyedrop (I)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8Z"/></svg></button>
+    <!-- FIX: Pan tool added -->
+    <button class="tbtn" id="tPan" title="Pan / Move (Space or M)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg></button>
   </div>
   <div class="tg">
     <span class="tg-lbl">SPECIAL</span>
@@ -159,7 +172,7 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
     <button class="ltab" data-l="0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>BG</button>
   </div>
   <select class="size-sel" id="sizeSel">
-    <option value="99x59" selected>99x59</option>
+    <option value="100x60" selected>100x60</option>
     <option value="50x30">50x30</option>
     <option value="200x80">200x80</option>
     <option value="custom">Custom...</option>
@@ -176,6 +189,7 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
     <button class="dbtn" onclick="toggleDrop('wpMenu')" id="wpBtn">Sunny v</button>
     <div class="dmenu" id="wpMenu">
       <div class="di" onclick="setWallpaper('sunny')">Sunny</div>
+      <div class="di" onclick="setWallpaper('city')">Rainy City</div>
       <div class="di" onclick="setWallpaper('none')">None / Dark</div>
     </div>
   </div>
@@ -184,6 +198,10 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
   <button class="tbtn active" id="tGrid" title="Toggle Grid" onclick="toggleGrid()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3h18v18H3z"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
   <button class="tbtn active" id="tCoords" title="Toggle Coordinates" onclick="toggleCoords()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="3"/></svg></button>
   <button class="tb-btn" id="tSave" onclick="manualSave()" title="Save to history" style="color:var(--green);border-color:rgba(74,222,128,.4);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save</button>
+  <!-- FIX: Render button -->
+  <button class="tb-btn" onclick="renderWorldToPng()" title="Render world to PNG" style="color:var(--cyan);border-color:rgba(56,189,248,.35);">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Render
+  </button>
   <button class="tb-btn" onclick="exportPlan()">Export</button>
   <button class="tb-btn" onclick="importPlan()">Import</button>
   <button class="tb-btn danger" onclick="confirmClear()">Clear</button>
@@ -192,7 +210,7 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
   <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <div class="sb-head">
-      <span class="sb-sico">search</span>
+      <span class="sb-sico"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
       <input class="sb-sbox" id="sbSearch" type="text" placeholder="Search blocks..." autocomplete="off">
     </div>
     <div class="sb-filter" id="sbFilter">
@@ -230,6 +248,7 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
   <button class="tbtn" data-t="fill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11c0 5-7 11-7 11S5 16 5 11a7 7 0 0 1 14 0z"/><circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none"/></svg></button>
   <button class="tbtn" data-t="erase"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l10-10 7 7-3.5 3.5"/><path d="M6.5 17.5l4-4"/></svg></button>
   <button class="tbtn" data-t="eyedrop"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8Z"/></svg></button>
+  <button class="tbtn" data-t="pan"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg></button>
   <button class="tbtn" data-t="select"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="4 3"><rect x="3" y="3" width="18" height="18" rx="1"/></svg></button>
   <button class="tbtn" data-t="paint" onclick="openPaintPicker(event)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.37 2.63 14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3z"/><path d="M9 8c-2 3-4 3.5-7 4l8 10c2-1 6-5 6-7"/></svg></button>
   <button class="tbtn" data-t="wrench"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></button>
@@ -239,12 +258,13 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
   <button class="ltab" data-l="0">BG</button>
 </div>
 <div class="statusbar">
-  <span>Size: <strong id="statSize">100x59</strong></span>
+  <span>Size: <strong id="statSize">100x60</strong></span>
   <span>Blocks: <strong id="statBlocks">0</strong></span>
   <span>Items: <strong id="statItems">--</strong></span>
+  <span>v<strong id="statVer">--</strong></span>
   <span>Layer: <strong id="statLayer">Auto</strong></span>
   <span>Tool: <strong id="statTool">Pencil</strong></span>
-  <span class="sb-hint">Scroll=zoom | Alt/MMB=pan | RMB=erase | B=paint | W=wrench | +/-=zoom | Home=fit</span>
+  <span class="sb-hint">Scroll=zoom | Alt/MMB=pan | M=pan tool | RMB=erase | B=paint | W=wrench | +/-=zoom | Home=fit</span>
 </div>
 <button class="sb-fab" id="sbFab" onclick="toggleSidebar()">B</button>
 <!-- PAINT PICKER POPUP -->
@@ -254,8 +274,14 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
 </div>
 <!-- WRENCH MODAL -->
 <div class="wrench-modal" id="wrenchModal">
-  <div class="wm-title">TEXTURE PICKER <button class="wm-close" onclick="closeWrenchModal()">✕</button></div>
+  <div class="wm-title">BLOCK STATE <button class="wm-close" onclick="closeWrenchModal()">✕</button></div>
+  <div class="wm-states" id="wmStates" style="display:none"></div>
   <div class="wm-grid" id="wmGrid"></div>
+</div>
+<!-- RENDER OVERLAY -->
+<div class="render-overlay" id="renderOverlay">
+  <div class="render-label" id="renderLabel">Rendering world…</div>
+  <div class="render-bar-bg"><div class="render-bar" id="renderBar"></div></div>
 </div>
 <div class="modal" id="sizeModal">
   <div class="modal-box">
@@ -272,15 +298,18 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
 
 <div id="tooltip"></div>
 <script>
-const CFG={user:'kabuokis',repo:'growtopia-data',ver:'5.42',tile:32};
+const CFG={user:'kabuokis',repo:'growtopia-data',tile:32};
+// Versions available in the GitHub repo
+const VERSIONS=['5.42','5.41','5.40','5.39','5.38','5.37','5.36','5.35'];
+// Read version from sessionStorage (set by home page when creating/opening a world)
+const _storedVer=sessionStorage.getItem('gt_wp_ver');
+CFG.ver=VERSIONS.includes(_storedVer)?_storedVer:(localStorage.getItem('gt_wp_ver_pref')||VERSIONS[0]);
 const RAW=`https://raw.githubusercontent.com/${CFG.user}/${CFG.repo}/main`;
-const TEX=`${RAW}/${CFG.ver}/decoded/textures/`;
+let TEX=`${RAW}/${CFG.ver}/decoded/textures/`;
 const T=CFG.tile;
 
-let WW=99,WH=59;
+let WW=100,WH=60;
 let world=[];
-// paintLayer[y][x] = paintItemId (type-8 item) or null
-// wrenchOverrides[layer][y][x] = {tx,ty} manual texture offset override
 let paintLayer=[];
 let wrenchOverrides=[[],[]];
 function initWorld(w,h){
@@ -300,8 +329,42 @@ function pngName(fn){
 }
 function getImg(fn){
   if(!fn)return null;
-  const p=pngName(fn);if(IMGS[p])return IMGS[p];
-  const i=new Image();i.crossOrigin='anonymous';i.src=TEX+p;IMGS[p]=i;return i;
+  const p=pngName(fn);
+  if(IMGS[p]){
+    // If image previously errored, allow retry after 3s cooldown
+    if(IMGS[p]._failed && Date.now()-IMGS[p]._failedAt > 3000){
+      const i=IMGS[p];
+      i._failed=false;i._failedAt=0;
+      const src=TEX+p+'?r='+Date.now(); // cache-bust
+      i.src='';i.src=src;
+    }
+    return IMGS[p];
+  }
+  const i=new Image();
+  i.crossOrigin='anonymous';
+  i._failed=false;i._failedAt=0;i._loadOk=false;
+  i.onload=()=>{ i._loadOk=true;i._failed=false;onImgLoad(p); };
+  i.onerror=()=>{ i._failed=true;i._failedAt=Date.now();i._loadOk=false; };
+  i.src=TEX+p;
+  IMGS[p]=i;
+  return i;
+}
+// Called whenever an image finishes loading — redraws anything waiting on it
+function onImgLoad(p){
+  // Redraw sidebar canvases using this image
+  document.querySelectorAll('canvas[data-sid]').forEach(c=>{
+    if(c._sbOk)return;
+    const it=IDMAP[+c.dataset.sid];
+    if(it&&pngName(it.file_name)===p)drawSbIcon(c,it);
+  });
+  // Redraw selected item preview if it uses this image
+  if(selItem&&pngName(selItem.file_name)===p){
+    SCACHE.delete(selItem.id+'_28');
+    const sc=document.getElementById('selCanvas');
+    if(sc){sc.getContext('2d').clearRect(0,0,28,28);sc.getContext('2d').drawImage(getCached(selItem,28),0,0);}
+  }
+  // Trigger a render pass to update the world canvas too
+  clearCache();schedRender();
 }
 function parseItems(txt){
   const out=[];
@@ -314,62 +377,41 @@ function parseItems(txt){
 }
 function isSeed(it){return it.type!==38&&it.bloom_time!==0;}
 function isCloth(it){
-  // type 20 = clothing; clothing_type > 0; or icon filename
   if(it.type===20||it.clothing_type>0)return true;
   return/player_(feet|handitem|longhanditem|cosmetics)/i.test(it.file_name||'');
 }
 function isIcon(it){return/player_(feet|handitem|longhanditem|cosmetics)/i.test(it.file_name||'');}
-// Block types: placed on FG layer
-// type 10 = block, type 17 = block, type 41 = weather machine (block), type 62 = block
 function isBlockType(it){
-  const BLOCK_TYPES=new Set([10,17,41,62,3,6,7,11,12,14,21,28,32,33,34,35,55,56,57,66,67,68,69,71,72,77,78,80,81,95,96,97,98,100,102,105,106,107,108,109,110,111,112,118,122,124,125,126]);
+  const BLOCK_TYPES=new Set([10,17,41,62,3,6,7,11,12,14,21,28,32,33,34,35,43,55,56,57,66,67,68,69,71,72,77,78,80,81,95,96,97,98,100,102,105,106,107,108,109,110,111,112,118,122,124,125,126]);
   if(BLOCK_TYPES.has(it.type))return true;
-  // Fall back: has collision or layer=1
   if(it.collision>0&&it.type!==18&&it.type!==15)return true;
   if(it.layer===1)return true;
   return false;
 }
-// Background types: placed on BG layer
 function isBgType(it){
   if(it.type===18||it.type===15)return true;
   if(it.layer===0&&it.collision===0&&it.type!==17&&!isBlockType(it))return true;
   return false;
 }
 function autoLayer(it){
-  // Explicit BG types
   if(it.type===18||it.type===15)return 0;
-  // Explicit block types
   if(it.type===10||it.type===17||it.type===41||it.type===62)return 1;
-  // BG: no collision, layer=0
   if(it.collision===0&&it.layer===0)return 0;
-  // FG default
   return 1;
 }
-function isPaint(it){
-  // type=8 items that have bg_col set are paint buckets
-  return it.type===8&&it.bg_col>0;
-}
-function isVarnish(it){ return it.id===3492; }
+function isPaint(it){return it.type===8&&it.bg_col>0;}
+function isVarnish(it){return it.id===3492;}
 function placeable(it){
   if(!it.name||it.name==='Blank'||it.id===0)return false;
   if(!it.file_name)return false;
-  // Exclude non-placeable item types:
-  // 1=tool, 2=ances_seed, 4=??, 8=consumable/paint, 20=clothing, 28=quest, 38=seed_base
-  const BAD_TYPES=new Set([1,2,4,8,28,38]);
+  const BAD_TYPES=new Set([1,2,4,8,28,37,38]);
   if(BAD_TYPES.has(it.type)||it.type===20)return false;
   if(isCloth(it)||isSeed(it))return false;
   return true;
 }
-
-// ---- PAINT COLOR ----
 function paintColor(it){
-  // bg_col is packed ARGB 32-bit int from items.dat p[30]
   const v=it.bg_col||0;
-  const a=((v>>>24)&0xff);
-  const r=((v>>>16)&0xff);
-  const g=((v>>>8)&0xff);
-  const b=(v&0xff);
-  // If alpha is 0 but rgb non-zero, treat as fully opaque (some items store RGB only)
+  const a=((v>>>24)&0xff);const r=((v>>>16)&0xff);const g=((v>>>8)&0xff);const b=(v&0xff);
   const alpha=a===0&&(r||g||b)?200:a;
   return `rgba(${r},${g},${b},${(alpha/255).toFixed(3)})`;
 }
@@ -378,184 +420,56 @@ function paintColorOpaque(it){
   return `#${((v>>>16)&0xff).toString(16).padStart(2,'0')}${((v>>>8)&0xff).toString(16).padStart(2,'0')}${(v&0xff).toString(16).padStart(2,'0')}`;
 }
 
-// ---- SPREAD TYPE TILE SELECTION ----
-// spread_type=0: single tile at (tx,ty)
-// spread_type=1: 4-tile row; main = (tx, ty); no connectivity
-// spread_type=3: 4-tile row; main = (tx+3, ty); no connectivity
-// spread_type=2: 8x6 autotile grid; main isolated = (tx+4, ty+1)
-// spread_type=5: 8x2 autotile grid; main isolated = (tx+4, ty+1)
-
-// ── SPREAD TYPE 2: EXACT 256-ENTRY LOOKUP ──
-// Derived directly from spritesheet JSON mapping data.
-// Bit encoding: TL=1 T=2 TR=4 L=8 R=16 BL=32 B=64 BR=128
-// Uses "nearest match" algorithm: for each of 256 neighbor masks, find the
-// rule whose required-neighbor-set is a subset of active neighbors, with
-// highest specificity (most bits set in the rule = most precise match).
 const ST2=(function(){
-  // [required_mask, col_offset, row_offset, specificity]
-  // Full 46-rule mapping verified via Block Mapper V3.4 (doc6).
-  // Covers entire 8x6 grid including inner corners, T-junctions, pipes.
-  // Bit encoding: TL=1 T=2 TR=4 L=8 R=16 BL=32 B=64 BR=128
-  // Duplicate masks (1,0)=(5,4) and (4,1)=(7,5): first occurrence wins.
   const rules=[
-    // ── ROW 0: outer edges ──
-    [255,0,0,8], // all 8 neighbors  — fully interior
-    [248,1,0,5], // L BL B BR R      — top edge
-    [31, 2,0,5], // TL T TR L R      — bottom edge
-    [214,3,0,5], // T TR R BR B      — left edge
-    [107,4,0,5], // TL T L BL B      — right edge
-    [208,5,0,3], // R BR B           — top-left corner
-    [104,6,0,3], // L BL B           — top-right corner
-    [22, 7,0,3], // T TR R           — bottom-left corner
-    // ── ROW 1: inner corners (one diagonal missing) + pipes ──
-    [11, 0,1,3], // TL T L           — bottom-right corner
-    [66, 1,1,2], // T B              — vertical pipe
-    [64, 2,1,1], // B only           — top cap
-    [2,  3,1,1], // T only           — bottom cap
-    [0,  4,1,0], // isolated         — standalone
-    [254,5,1,7], // T TR L R BL B BR — all except TL
-    [251,6,1,7], // TL T L R BL B BR — all except TR
-    [223,7,1,7], // TL T TR L R B BR — all except BL
-    // ── ROW 2: 6-neighbor variants ──
-    [127,0,2,7], // TL T TR L R BL B — all except BR
-    [250,1,2,6], // T L R BL B BR    — all except TL+TR
-    [95, 2,2,6], // TL T TR L R B    — all except BL+BR
-    [222,3,2,6], // T TR L R B BR    — all except TL+BL
-    [123,4,2,6], // TL T L R BL B    — all except TR+BR
-    [126,5,2,6], // T TR L R BL B    — all except TL+BR
-    [219,6,2,6], // TL T L R B BR    — all except TR+BL
-    [91, 7,2,5], // TL T L R B       — T-junction variants
-    // ── ROW 3: T-junctions + horizontal pipe/caps ──
-    [94, 0,3,5], // T TR L R B
-    [122,1,3,5], // T L R BL B
-    [218,2,3,5], // T L R B BR
-    [90, 3,3,4], // T L R B          — all 4 cardinals, no diagonals
-    [24, 4,3,2], // L R              — horizontal pipe
-    [16, 5,3,1], // R only           — left cap
-    [8,  6,3,1], // L only           — right cap
-    [210,7,3,4], // T R B BR
-    // ── ROW 4: more T-junctions ──
-    [86, 0,4,4], // T TR R B
-    [82, 1,4,3], // T R B
-    [106,2,4,4], // T L BL B
-    [75, 3,4,4], // TL T L B
-    [74, 4,4,3], // T L B
-    [120,6,4,4], // L BL B R
-    [88, 7,4,3], // L B R
-    // ── ROW 5: 2-neighbor L-shapes and pairs ──
-    [30, 0,5,4], // T TR L R
-    [27, 1,5,4], // TL T L R
-    [26, 2,5,3], // T L R
-    [18, 3,5,2], // T R
-    [10, 4,5,2], // T L
-    [80, 5,5,2], // R B
-    [72, 6,5,2], // L B
+    [255,0,0,8],[248,1,0,5],[31,2,0,5],[214,3,0,5],[107,4,0,5],
+    [208,5,0,3],[104,6,0,3],[22,7,0,3],[11,0,1,3],[66,1,1,2],
+    [64,2,1,1],[2,3,1,1],[0,4,1,0],[254,5,1,7],[251,6,1,7],
+    [223,7,1,7],[127,0,2,7],[250,1,2,6],[95,2,2,6],[222,3,2,6],
+    [123,4,2,6],[126,5,2,6],[219,6,2,6],[91,7,2,5],[94,0,3,5],
+    [122,1,3,5],[218,2,3,5],[90,3,3,4],[24,4,3,2],[16,5,3,1],
+    [8,6,3,1],[210,7,3,4],[86,0,4,4],[82,1,4,3],[106,2,4,4],
+    [75,3,4,4],[74,4,4,3],[120,6,4,4],[88,7,4,3],[30,0,5,4],
+    [27,1,5,4],[26,2,5,3],[18,3,5,2],[10,4,5,2],[80,5,5,2],[72,6,5,2],
   ];
-  return rules; // raw rules, scored at runtime
+  return rules;
 })();
-
-
-// ── SPREAD TYPE 5: EXACT 256-ENTRY LOOKUP ──
-// Derived directly from spritesheet JSON mapping data (doc 3).
-// 8×2 grid, 16 tiles. Same bit encoding as ST2: TL=1 T=2 TR=4 L=8 R=16 BL=32 B=64 BR=128
-// Nearest-match: required-neighbor-set must be subset of active neighbors; highest specificity wins.
 const ST5=(function(){
   const rules=[
-    [255,0,0,8], // all 8 neighbors
-    [248,1,0,5], // L BL B R BR
-    [31, 2,0,5], // L TL T TR R
-    [214,3,0,5], // T TR R BR B
-    [107,4,0,5], // T TL L BL B
-    [208,5,0,3], // R BR B
-    [104,6,0,3], // L BL B
-    [22, 7,0,3], // T TR R
-    [11, 0,1,3], // T TL L
-    [66, 1,1,2], // T B
-    [64, 2,1,1], // B only
-    [2,  3,1,1], // T only
-    [0,  4,1,0], // isolated
-    [24, 5,1,2], // L R
-    [16, 6,1,1], // R only
-    [8,  7,1,1], // L only
+    [255,0,0,8],[248,1,0,5],[31,2,0,5],[214,3,0,5],[107,4,0,5],
+    [208,5,0,3],[104,6,0,3],[22,7,0,3],[11,0,1,3],[66,1,1,2],
+    [64,2,1,1],[2,3,1,1],[0,4,1,0],[24,5,1,2],[16,6,1,1],[8,7,1,1],
   ];
   return rules;
 })();
-
-
-// Spread type 14: horizontal-only autotile (4×1 grid)
-// Bit encoding: L=8 R=16 (only horizontal neighbors matter)
-// Rules: [required_mask, col_offset, row_offset, specificity]
 const ST14=(function(){
-  const rules=[
-    [24,1,0,2], // L+R  — middle
-    [16,0,0,1], // R only — left cap
-    [8, 2,0,1], // L only — right cap
-    [0, 3,0,0], // isolated
-  ];
+  const rules=[[24,1,0,2],[16,0,0,1],[8,2,0,1],[0,3,0,0]];
   return rules;
 })();
 
-// 8-bit neighbor mask using same bit encoding as ST2 rules:
-// TL=1 T=2 TR=4 L=8 R=16 BL=32 B=64 BR=128
-// Only connects to neighbors with the same item ID (same tile type).
-function getConnMask(wx,wy,layer){
-  const selfId=world[layer][wy][wx];
-  if(selfId==null)return 0;
-  // A neighbor counts only if it has the exact same item id
-  function has(nx,ny){
-    if(nx<0||nx>=WW||ny<0||ny>=WH)return false;
-    const nid=world[layer][ny][nx];
-    if(nid==null)return false;
-    return nid===selfId;
-  }
-  let m=0;
-  if(has(wx-1,wy-1))m|=1;   // TL
-  if(has(wx  ,wy-1))m|=2;   // T
-  if(has(wx+1,wy-1))m|=4;   // TR
-  if(has(wx-1,wy  ))m|=8;   // L
-  if(has(wx+1,wy  ))m|=16;  // R
-  if(has(wx-1,wy+1))m|=32;  // BL
-  if(has(wx  ,wy+1))m|=64;  // B
-  if(has(wx+1,wy+1))m|=128; // BR
-  return m;
-}
-
-// V3.4 scoring: same algorithm as Block Mapper V3.4
-// Penalizes rules that don't cover all active neighbor directions.
-// bestScore <= 0 -> fall back to isolated tile (no partial matches).
-const AUTOTILE_EDGE={2:10,8:10,16:10,64:10}; // T=2,L=8,R=16,B=64 weight 10; diagonals weight 1
+const AUTOTILE_EDGE={2:10,8:10,16:10,64:10};
 function scoreRule(activeMask,reqMask){
   let s=0;
   for(let b=1;b<=128;b<<=1){
     const w=AUTOTILE_EDGE[b]||1;
     const inRule=reqMask&b,inActive=activeMask&b;
-    if(inRule){s+=inActive?w:-w*2;}    // rule demands b: hit=+w, miss=-2w
-    else if(inActive){s-=w;}           // active but rule ignores it: -w
+    if(inRule){s+=inActive?w:-w*2;}else if(inActive){s-=w;}
   }
   return s;
 }
 function bestAutotile(rules,activeMask,isolX,isolY){
   let bc=isolX,br=isolY,bs=-Infinity;
   for(let i=0;i<rules.length;i++){
-    const[req,c,r]=rules[i];
-    if(req===0)continue; // skip isolated rule entry
-    const s=scoreRule(activeMask,req);
-    if(s>bs){bs=s;bc=c;br=r;}
+    const[req,c,r]=rules[i];if(req===0)continue;
+    const s=scoreRule(activeMask,req);if(s>bs){bs=s;bc=c;br=r;}
   }
-  return bs>0?[bc,br]:[isolX,isolY]; // only use rule if net positive
+  return bs>0?[bc,br]:[isolX,isolY];
 }
-// Axis-aware autotile scoring (for ST14 horizontal-only tiles).
-// Only penalizes uncovered neighbors on axes the rule actually declares.
-// e.g. a left/right-only rule is never penalized for having T/B neighbors.
-const HORIZ_BITS=new Set([8,16]);       // L, R
-const VERT_BITS=new Set([2,64]);        // T, B
-const DIAG_BITS=new Set([1,4,32,128]); // TL,TR,BL,BR
+const HORIZ_BITS=new Set([8,16]);const VERT_BITS=new Set([2,64]);const DIAG_BITS=new Set([1,4,32,128]);
 function bestAutotileAxis(rules,activeMask,isolC,isolR){
   let bc=isolC,br=isolR,bs=-Infinity;
   for(let i=0;i<rules.length;i++){
-    const[req,c,r]=rules[i];
-    if(req===0)continue;
-    // Determine which axes this rule uses
+    const[req,c,r]=rules[i];if(req===0)continue;
     let hasH=false,hasV=false,hasD=false;
     for(const b of [8,16])if(req&b){hasH=true;break;}
     for(const b of [2,64])if(req&b){hasV=true;break;}
@@ -563,14 +477,10 @@ function bestAutotileAxis(rules,activeMask,isolC,isolR){
     let s=0;
     for(let b=1;b<=128;b<<=1){
       const w=AUTOTILE_EDGE[b]||1;
-      if(req&b){
-        s+=activeMask&b?w:-w*2; // rule demands b
-      } else if(activeMask&b){
-        // only penalize if rule operates on this bit's axis
+      if(req&b){s+=activeMask&b?w:-w*2;}
+      else if(activeMask&b){
         const inH=HORIZ_BITS.has(b),inV=VERT_BITS.has(b),inDg=DIAG_BITS.has(b);
-        if(inH&&!hasH)continue;
-        if(inV&&!hasV)continue;
-        if(inDg&&!hasD)continue;
+        if(inH&&!hasH)continue;if(inV&&!hasV)continue;if(inDg&&!hasD)continue;
         s-=w;
       }
     }
@@ -578,36 +488,45 @@ function bestAutotileAxis(rules,activeMask,isolC,isolR){
   }
   return bs>0?[bc,br]:[isolC,isolR];
 }
-
+function getConnMask(wx,wy,layer){
+  const selfId=world[layer][wy][wx];if(selfId==null)return 0;
+  function has(nx,ny){if(nx<0||nx>=WW||ny<0||ny>=WH)return false;const nid=world[layer][ny][nx];if(nid==null)return false;return nid===selfId;}
+  let m=0;
+  if(has(wx-1,wy-1))m|=1;if(has(wx,wy-1))m|=2;if(has(wx+1,wy-1))m|=4;
+  if(has(wx-1,wy))m|=8;if(has(wx+1,wy))m|=16;
+  if(has(wx-1,wy+1))m|=32;if(has(wx,wy+1))m|=64;if(has(wx+1,wy+1))m|=128;
+  return m;
+}
+// spread_type 7: vertical chain
+// col0 = top-neighbor only    → bottom-end piece  (something above, nothing below)
+// col1 = top+bottom neighbors → middle piece
+// col2 = bottom-neighbor only → top-end piece     (nothing above, something below)
+// col3 = isolated             → mainTile
+function st7TileOffset(it,wx,wy,layer){
+  const selfId=world[layer][wy][wx];
+  const hasTop=wy>0        &&world[layer][wy-1][wx]===selfId;
+  const hasBot=wy<WH-1     &&world[layer][wy+1][wx]===selfId;
+  if(hasTop&&hasBot)return[1,0];  // middle
+  if(hasTop)        return[0,0];  // bottom-end  (has neighbor above → col0)
+  if(hasBot)        return[2,0];  // top-end     (has neighbor below → col2)
+  return[3,0];                    // isolated
+}
 function tileOffset(it,wx,wy,layer){
-  // Wrench manual override takes highest priority
   if(wx!==undefined&&layer!==undefined){
     const ov=wrenchOverrides[layer]&&wrenchOverrides[layer][wy]&&wrenchOverrides[layer][wy][wx];
     if(ov)return[ov.tx,ov.ty];
   }
   const st=it.spread_type;
-  if(st===2){
-    if(wx===undefined)return[it.tex_x+4,it.tex_y+1];
-    const[c,r]=bestAutotile(ST2,getConnMask(wx,wy,layer),4,1);
-    return[it.tex_x+c,it.tex_y+r];
-  }
-  if(st===5){
-    if(wx===undefined)return[it.tex_x+4,it.tex_y+1];
-    const[c,r]=bestAutotile(ST5,getConnMask(wx,wy,layer),4,1);
-    return[it.tex_x+c,it.tex_y+r];
-  }
-  if(st===3){
-    if(wx===undefined)return[it.tex_x+3,it.tex_y]; // isolated
-    const[c,r]=bestAutotileAxis(ST14,getConnMask(wx,wy,layer),3,0);
-    return[it.tex_x+c,it.tex_y+r];
-  }
+  if(st===2){if(wx===undefined)return[it.tex_x+4,it.tex_y+1];const[c,r]=bestAutotile(ST2,getConnMask(wx,wy,layer),4,1);return[it.tex_x+c,it.tex_y+r];}
+  if(st===5){if(wx===undefined)return[it.tex_x+4,it.tex_y+1];const[c,r]=bestAutotile(ST5,getConnMask(wx,wy,layer),4,1);return[it.tex_x+c,it.tex_y+r];}
+  if(st===3){if(wx===undefined)return[it.tex_x+3,it.tex_y];const[c,r]=bestAutotileAxis(ST14,getConnMask(wx,wy,layer),3,0);return[it.tex_x+c,it.tex_y+r];}
+  if(st===7){if(wx===undefined)return[it.tex_x+3,it.tex_y];const[c,r]=st7TileOffset(it,wx,wy,layer);return[it.tex_x+c,it.tex_y+r];}
   return[it.tex_x,it.tex_y];
 }
 
-// ---- SPRITE CACHE ----
 const SCACHE=new Map();
 function cacheKey(it,sz,wx,wy,layer){
-  if((it.spread_type===2||it.spread_type===5||it.spread_type===3)&&wx!==undefined)return`${it.id}_${sz}_${it.spread_type}_${getConnMask(wx,wy,layer)}`;
+  if((it.spread_type===2||it.spread_type===5||it.spread_type===3||it.spread_type===7)&&wx!==undefined)return`${it.id}_${sz}_${it.spread_type}_${getConnMask(wx,wy,layer)}`;
   return`${it.id}_${sz}`;
 }
 function getCached(it,sz,wx,wy,layer){
@@ -616,31 +535,23 @@ function getCached(it,sz,wx,wy,layer){
   const oc=document.createElement('canvas');oc.width=sz;oc.height=sz;oc._ok=false;
   drawTile(oc.getContext('2d'),it,0,0,sz,wx,wy,layer);
   const im=getImg(it.file_name);
-  if(im&&im.complete&&im.naturalWidth){oc._ok=true;}
-  else if(im&&!im.complete){im.addEventListener('load',()=>{SCACHE.delete(key);schedRender();},{once:true});}
+  if(im&&im._loadOk&&im.naturalWidth){oc._ok=true;}
+  else if(im&&!im._loadOk){im.addEventListener('load',()=>{SCACHE.delete(key);schedRender();},{once:true});}
   SCACHE.set(key,oc);return oc;
 }
 function clearCache(){SCACHE.clear();}
-function invalidNbrs(wx,wy,layer){
-  // Any placement changes neighbor masks for up to 9 cells.
-  // Wipe the whole cache — it only runs on user actions, not per-frame.
-  // Selective deletion by sz is fragile: a single sz mismatch leaves stale
-  // entries that cause neighbors to show the wrong autotile variant.
-  clearCache();
-}
+function invalidNbrs(wx,wy,layer){clearCache();}
 
-// ---- DRAWING ----
 const VT=15;
 const _visCache=new Map();
 const _visCanvas=document.createElement('canvas');_visCanvas.width=T;_visCanvas.height=T;
 const _visCtx=_visCanvas.getContext('2d');
 function vis(im,px,py){
-  if(!im||!im.complete||!im.naturalWidth)return 0;
+  if(!im||!im._loadOk||!im.naturalWidth)return 0;
   const key=im.src+'|'+px+'|'+py;
   if(_visCache.has(key))return _visCache.get(key);
   try{
-    _visCtx.clearRect(0,0,T,T);
-    _visCtx.drawImage(im,px,py,T,T,0,0,T,T);
+    _visCtx.clearRect(0,0,T,T);_visCtx.drawImage(im,px,py,T,T,0,0,T,T);
     const d=_visCtx.getImageData(0,0,T,T).data;
     let n=0;for(let i=3;i<d.length;i+=4)if(d[i]>20)n++;
     _visCache.set(key,n);return n;
@@ -650,51 +561,27 @@ function drawTile(ctx,it,dx,dy,sz,wx,wy,layer){
   if(isIcon(it)){drawIcon(ctx,it,dx,dy,sz);return;}
   const im=getImg(it.file_name);
   if(!im){drawQ(ctx,dx,dy,sz);return;}
-  // Image exists but still loading — draw nothing, will re-render when loaded
-  if(!im.complete||!im.naturalWidth){
-    if(!im._hooked){im._hooked=true;im.addEventListener('load',()=>{clearCache();schedRender();},{once:true});}
-    return;
-  }
-  const [tx,ty]=tileOffset(it,wx,wy,layer);
+  if(!im._loadOk||!im.naturalWidth){return;}
+  const[tx,ty]=tileOffset(it,wx,wy,layer);
   const px=tx*T,py=ty*T;
   const st=it.spread_type;
-  // For autotile types (2 & 5): trust the lookup table completely.
-  // Never fall back — the lookup always returns a valid grid position.
-  // vis() check is WRONG for autotiles: some variants have sparse/transparent
-  // edges that would incorrectly trigger fallback to the base tile.
-  if(st===2||st===5||st===3){
+  if(st===2||st===5||st===3||st===7){
     if(px<0||py<0||px+T>im.naturalWidth||py+T>im.naturalHeight){
-      // Lookup returned out-of-bounds — draw isolated variant as safe fallback
-      const fx=it.tex_x*T+(st===14?3:4)*T, fy=it.tex_y*T+(st===14?0:1)*T;
-      if(fx+T<=im.naturalWidth&&fy+T<=im.naturalHeight){
-        ctx.imageSmoothingEnabled=false;ctx.drawImage(im,fx,fy,T,T,dx,dy,sz,sz);
-      }else{drawQ(ctx,dx,dy,sz);}
-    }else{
-      ctx.imageSmoothingEnabled=false;ctx.drawImage(im,px,py,T,T,dx,dy,sz,sz);
-    }
+      const fx=it.tex_x*T+(st===3?3:(st===7?3:4))*T,fy=it.tex_y*T+(st===3?0:(st===7?0:1))*T;
+      if(fx+T<=im.naturalWidth&&fy+T<=im.naturalHeight){ctx.imageSmoothingEnabled=false;ctx.drawImage(im,fx,fy,T,T,dx,dy,sz,sz);}
+      else{drawQ(ctx,dx,dy,sz);}
+    }else{ctx.imageSmoothingEnabled=false;ctx.drawImage(im,px,py,T,T,dx,dy,sz,sz);}
     return;
   }
-  // For non-autotile types: use vis() to detect genuinely blank sprite slots
   if(px<0||py<0||px+T>im.naturalWidth||py+T>im.naturalHeight){
     const bx=it.tex_x*T,by=it.tex_y*T;
-    if(bx+T<=im.naturalWidth&&by+T<=im.naturalHeight&&vis(im,bx,by)>=VT){
-      ctx.imageSmoothingEnabled=false;ctx.drawImage(im,bx,by,T,T,dx,dy,sz,sz);
-    }else{drawQ(ctx,dx,dy,sz);}
-    return;
+    if(bx+T<=im.naturalWidth&&by+T<=im.naturalHeight&&vis(im,bx,by)>=VT){ctx.imageSmoothingEnabled=false;ctx.drawImage(im,bx,by,T,T,dx,dy,sz,sz);}
+    else{drawQ(ctx,dx,dy,sz);}return;
   }
   if(vis(im,px,py)<VT){
-    // Try base tex_x/tex_y first
     const bx=it.tex_x*T,by=it.tex_y*T;
-    if(bx+T<=im.naturalWidth&&by+T<=im.naturalHeight&&vis(im,bx,by)>=VT){
-      ctx.imageSmoothingEnabled=false;ctx.drawImage(im,bx,by,T,T,dx,dy,sz,sz);return;
-    }
-    // Scan up to 8 tiles in the same row for any visible tile
-    for(let tx2=0;tx2<8;tx2++){
-      const sx2=tx2*T;
-      if(sx2+T<=im.naturalWidth&&vis(im,sx2,by)>=VT){
-        ctx.imageSmoothingEnabled=false;ctx.drawImage(im,sx2,by,T,T,dx,dy,sz,sz);return;
-      }
-    }
+    if(bx+T<=im.naturalWidth&&by+T<=im.naturalHeight&&vis(im,bx,by)>=VT){ctx.imageSmoothingEnabled=false;ctx.drawImage(im,bx,by,T,T,dx,dy,sz,sz);return;}
+    for(let tx2=0;tx2<8;tx2++){const sx2=tx2*T;if(sx2+T<=im.naturalWidth&&vis(im,sx2,by)>=VT){ctx.imageSmoothingEnabled=false;ctx.drawImage(im,sx2,by,T,T,dx,dy,sz,sz);return;}}
     drawQ(ctx,dx,dy,sz);return;
   }
   ctx.imageSmoothingEnabled=false;ctx.drawImage(im,px,py,T,T,dx,dy,sz,sz);
@@ -702,10 +589,7 @@ function drawTile(ctx,it,dx,dy,sz,wx,wy,layer){
 function drawIcon(ctx,it,dx,dy,sz){
   const im=getImg(it.file_name);
   if(!im){drawQ(ctx,dx,dy,sz);return;}
-  if(!im.complete||!im.naturalWidth){
-    if(!im._hooked){im._hooked=true;im.addEventListener('load',()=>{clearCache();schedRender();},{once:true});}
-    return;
-  }
+  if(!im._loadOk||!im.naturalWidth){return;}
   const isFeet=/player_feet/i.test(it.file_name||'');
   const px=it.tex_x*T,py=(isFeet?it.tex_y*2:it.tex_y)*T;
   if(px+T>im.naturalWidth||py+T>im.naturalHeight){drawQ(ctx,dx,dy,sz);return;}
@@ -716,7 +600,7 @@ function drawQ(ctx,dx,dy,sz){
   if(p1&&p1.complete&&p1.naturalWidth){ctx.imageSmoothingEnabled=false;ctx.drawImage(p1,12*T,7*T,T,T,dx,dy,sz,sz);}
   else{ctx.fillStyle='#1e2736';ctx.fillRect(dx,dy,sz,sz);ctx.fillStyle='rgba(255,255,255,.2)';ctx.font=`bold ${Math.max(5,sz/4)}px monospace`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',dx+sz/2,dy+sz/2);if(p1&&!p1._qh){p1._qh=true;p1.onload=()=>{clearCache();schedRender();};}}
 }
-// ---- SIDEBAR ----
+
 let sbFilter='all',sbQ='',selItem=null,curLayer='auto',curTool='pencil';
 const LNAMES={0:'Background',1:'Block (FG)',auto:'Auto'};
 const LCOL={0:'#38bdf8',1:'#4ade80',auto:'#fbbf24'};
@@ -730,16 +614,14 @@ function filterItems(){
   return list;
 }
 let _sbRaf=null,_sbList=[],_sbLoaded=0;
-const SB_PAGE=60; // items per render batch
+const SB_PAGE=60;
 function renderSidebar(){
   if(_sbRaf)cancelAnimationFrame(_sbRaf);
   _sbRaf=requestAnimationFrame(()=>{
     _sbList=filterItems();_sbLoaded=0;
-    const el=document.getElementById('sbList');
-    el.innerHTML='';
+    const el=document.getElementById('sbList');el.innerHTML='';
     if(!_sbList.length){el.innerHTML='<div class="sb-empty">No items found</div>';return;}
-    _appendSbItems(el,0,Math.min(SB_PAGE,_sbList.length));
-    _sbLoaded=Math.min(SB_PAGE,_sbList.length);
+    _appendSbItems(el,0,Math.min(SB_PAGE,_sbList.length));_sbLoaded=Math.min(SB_PAGE,_sbList.length);
   });
 }
 function _appendSbItems(el,from,to){
@@ -759,7 +641,6 @@ function _appendSbItems(el,from,to){
     frag.appendChild(div);
   }
   el.appendChild(frag);
-  // Draw icons in batches
   const cvs=[...el.querySelectorAll('canvas[data-sid]')].slice(from);let idx2=0;
   function batch(){
     const end=Math.min(idx2+30,cvs.length);
@@ -768,51 +649,69 @@ function _appendSbItems(el,from,to){
   }
   requestAnimationFrame(batch);
 }
-// Infinite scroll — load more items as user scrolls down
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('sbList').addEventListener('scroll',function(){
     if(this.scrollTop+this.clientHeight>this.scrollHeight-120){
-      if(_sbLoaded<_sbList.length){
-        const from=_sbLoaded,to=Math.min(_sbLoaded+SB_PAGE,_sbList.length);
-        _appendSbItems(this,from,to);_sbLoaded=to;
-      }
+      if(_sbLoaded<_sbList.length){const from=_sbLoaded,to=Math.min(_sbLoaded+SB_PAGE,_sbList.length);_appendSbItems(this,from,to);_sbLoaded=to;}
     }
   });
 });
 let _sbRetry=null;
 function drawSbIcon(c,it){
-  if(!it)return;
+  if(!it)return false;
   const im=getImg(it.file_name);
-  if(!im||!im.complete||!im.naturalWidth)return false;
-  // For icons: always draw directly from the known tex coords, skip vis() entirely
+  if(!im||!im._loadOk||!im.naturalWidth)return false;
   const ctx2=c.getContext('2d');ctx2.clearRect(0,0,24,24);
-  const cached=getCached(it,24);
-  ctx2.drawImage(cached,0,0);
+  const cached=getCached(it,24);ctx2.drawImage(cached,0,0);
+  c._sbOk=true;
   return true;
 }
+// Global retry ticker — runs every 3s, retries all undrawn sidebar canvases.
+// Never stops itself so late-loading images (id ~800+) always get another chance.
 function startSbRetry(){
   if(_sbRetry)clearInterval(_sbRetry);
   _sbRetry=setInterval(()=>{
-    let allDone=true;
+    let anyPending=false;
     document.querySelectorAll('canvas[data-sid]').forEach(c=>{
+      if(c._sbOk)return;
       const it=IDMAP[+c.dataset.sid];if(!it)return;
-      const done=drawSbIcon(c,it);
-      if(!done)allDone=false;
+      anyPending=true;
+      // getImg will auto-retry failed images (clears _failed after 3s cooldown)
+      getImg(it.file_name);
+      drawSbIcon(c,it);
     });
-    if(allDone){clearInterval(_sbRetry);_sbRetry=null;}
-    else schedRender();
-  },800);
+    // Also redraw selected-item preview if it hasn't rendered yet
+    if(selItem){
+      const sc=document.getElementById('selCanvas');
+      if(sc&&sc._selId===selItem.id){
+        const im=getImg(selItem.file_name);
+        if(im&&im._loadOk&&im.naturalWidth){
+          SCACHE.delete(selItem.id+'_28');
+          sc.getContext('2d').clearRect(0,0,28,28);
+          sc.getContext('2d').drawImage(getCached(selItem,28),0,0);
+          sc._selId=null; // mark as drawn
+        }
+      }
+    }
+  },3000);
 }
 function selectItem(it,divEl){
   selItem=it;const il=autoLayer(it);
   document.getElementById('selName').textContent=it.name;document.getElementById('selName').className='sel-nm';
   document.getElementById('selLayer').textContent='-> '+LNAMES[il];document.getElementById('selLayer').style.color=LCOL[il];
-  const sc=document.getElementById('selCanvas');sc.getContext('2d').clearRect(0,0,28,28);sc.getContext('2d').drawImage(getCached(it,28),0,0);
+  const sc=document.getElementById('selCanvas');
+  sc._selId=it.id; // mark for retry if image not yet loaded
+  sc.getContext('2d').clearRect(0,0,28,28);
+  const _im=getImg(it.file_name);
+  if(_im&&_im._loadOk&&_im.naturalWidth){
+    sc.getContext('2d').drawImage(getCached(it,28),0,0);
+    sc._selId=null; // drawn OK, no retry needed
+  }
+  // else: retry ticker will redraw once image loads
   document.querySelectorAll('.sbi').forEach(e=>e.classList.remove('sel'));
   if(divEl)divEl.classList.add('sel');else{const f=document.querySelector(`.sbi[data-id="${it.id}"]`);if(f)f.classList.add('sel');}
 }
 
-// ---- CANVAS ----
 const wc=document.getElementById('worldCanvas');const ctx=wc.getContext('2d');
 const wpc=document.getElementById('wallpaperCanvas');const wpctx=wpc.getContext('2d');
 const pvc=document.getElementById('previewCanvas');const pvctx=pvc.getContext('2d');
@@ -823,19 +722,30 @@ let dragging=false,dragS={x:0,y:0},viewS={x:0,y:0};
 let _rafPend=false;
 const MINZ=0.08,MAXZ=10,CELL=32;
 let _lastHover=null;
+
+// ── FIX: Pan state independent from dragging so it works with the pan tool ──
+let panToolActive=false; // true when using the pan tool
+let _spaceDown=false;    // spacebar held
+
+function updateCursorForTool(){
+  if(curTool==='pan'){wc.style.cursor=dragging?'grabbing':'grab';}
+  else if(curTool==='eyedrop'){wc.style.cursor='cell';}
+  else if(curTool==='fill'){wc.style.cursor='copy';}
+  else if(curTool==='select'){wc.style.cursor='crosshair';}
+  else if(curTool==='paste'){wc.style.cursor='copy';}
+  else{wc.style.cursor='crosshair';}
+}
+
 function drawHoverHighlight(wx,wy){
-  // Don't draw over selection/paste overlays
-  if(shapeStart||pasteMode||curTool==='select')return;
+  if(shapeStart||pasteMode||curTool==='select'||curTool==='pan')return;
   if(!inB(wx,wy))return;
   const cz=CELL*VIEW.z,sz=Math.max(1,Math.round(cz));
   const lc=curLayer==='auto'?LCOL.auto:LCOL[curLayer];
-  // When pencilDown the preview canvas may already be clear (pencil draws to world canvas)
-  // so we can safely draw the highlight there
   pvctx.clearRect(0,0,pvc.width,pvc.height);
   pvctx.strokeStyle=lc;pvctx.lineWidth=2;
   pvctx.strokeRect(Math.round(VIEW.x+wx*cz)+1,Math.round(VIEW.y+wy*cz)+1,sz-2,sz-2);
 }
-function schedRender(){if(_rafPend)return;_rafPend=true;requestAnimationFrame(()=>{_rafPend=false;renderWorld();if(_lastHover&&!shapeStart&&!pasteMode&&curTool!=='select')drawHoverHighlight(_lastHover.wx,_lastHover.wy);});}
+function schedRender(){if(_rafPend)return;_rafPend=true;requestAnimationFrame(()=>{_rafPend=false;renderWorld();if(_lastHover&&!shapeStart&&!pasteMode&&curTool!=='select'&&curTool!=='pan')drawHoverHighlight(_lastHover.wx,_lastHover.wy);});}
 function resizeCanvas(){
   const w=area.clientWidth,h=area.clientHeight;
   [wc,wpc,pvc].forEach(c=>{c.width=w;c.height=h;c.style.width=w+'px';c.style.height=h+'px';});
@@ -853,9 +763,7 @@ function renderWorld(){
   const cz=CELL*VIEW.z;
   const sx=Math.max(0,Math.floor(-VIEW.x/cz)),sy=Math.max(0,Math.floor(-VIEW.y/cz));
   const ex=Math.min(WW,Math.ceil((W-VIEW.x)/cz)+1),ey=Math.min(WH,Math.ceil((H-VIEW.y)/cz)+1);
-  const sz=Math.max(1,Math.round(cz));
-  // Use floor+1 overlap to eliminate sub-pixel gaps between tiles at fractional zoom
-  const tSz=Math.ceil(cz);
+  const sz=Math.max(1,Math.round(cz));const tSz=Math.ceil(cz);
   for(let wy=sy;wy<ey;wy++)for(let wx=sx;wx<ex;wx++){
     const id=world[0][wy][wx];if(id==null)continue;const it=IDMAP[id];if(!it)continue;
     const px=Math.floor(VIEW.x+wx*cz),py=Math.floor(VIEW.y+wy*cz);
@@ -866,13 +774,11 @@ function renderWorld(){
     const px=Math.floor(VIEW.x+wx*cz),py=Math.floor(VIEW.y+wy*cz);
     ctx.imageSmoothingEnabled=false;ctx.drawImage(getCached(it,sz,wx,wy,1),px,py,tSz,tSz);
   }
-  // ── Paint overlay layer ──
   for(let wy=sy;wy<ey;wy++)for(let wx=sx;wx<ex;wx++){
     const pid=paintLayer[wy]&&paintLayer[wy][wx];if(!pid)continue;
     const col=getPaintColor(pid);
     const ppx=Math.floor(VIEW.x+wx*cz),ppy=Math.floor(VIEW.y+wy*cz);
-    ctx.save();ctx.globalAlpha=0.52;ctx.fillStyle=col.hex;
-    ctx.fillRect(ppx,ppy,tSz,tSz);ctx.restore();
+    ctx.save();ctx.globalAlpha=0.52;ctx.fillStyle=col.hex;ctx.fillRect(ppx,ppy,tSz,tSz);ctx.restore();
   }
   if(showGrid&&VIEW.z>=0.25){
     ctx.strokeStyle='rgba(28,38,54,0.45)';ctx.lineWidth=0.5;
@@ -907,12 +813,8 @@ function rectCells(x0,y0,x1,y1,filled){const c=[],mn=Math.min,mx=Math.max,mnX=mn
 function circleCells(cx,cy,x1,y1){const r=Math.round(Math.sqrt((x1-cx)**2+(y1-cy)**2));const c=[],s=new Set();function add(x,y){const k=x+','+y;if(!s.has(k)){s.add(k);c.push([x,y]);}}let x=0,y=r,d=1-r;while(x<=y){[[x,y],[-x,y],[x,-y],[-x,-y],[y,x],[-y,x],[y,-x],[-y,-x]].forEach(([a,b])=>add(cx+a,cy+b));if(d<0)d+=2*x+3;else{d+=2*(x-y)+5;y--;}x++;}return c;}
 
 function placeLayer(it){
-  // Always use the item's natural layer — blocks go FG, BG items go BG
-  // Manual layer override is respected only when not in 'auto' mode
-  // but we still enforce item type rules to prevent misplacement
   if(curLayer==='auto')return autoLayer(it);
-  const natural=autoLayer(it);
-  return natural; // always use natural layer regardless of manual selection
+  return autoLayer(it);
 }
 function applyCells(cells,erase){
   if(!cells.length)return;if(!erase&&!selItem)return;
@@ -924,16 +826,21 @@ function applyCells(cells,erase){
   });
   if(changed){if(!_batchDraw)snapShot();schedRender();}
 }
+// _eraseLock: set on right-mousedown to lock erase to a specific layer+blockId
+let _eraseLock=null; // {layer:0|1, id:number|null} — null means erase anything
+
 function applyErase(cells){
   cells.forEach(([wx,wy])=>{
     if(!inB(wx,wy))return;
-    if(curLayer==='auto'){
-      // Peel top layer first: FG (1) -> BG (0), one layer per click/stroke
+    if(_eraseLock!==null){
+      // Locked: only erase cells that still have the exact block we started on
+      const {layer,id}=_eraseLock;
+      if(world[layer][wy][wx]===id&&id!==null){world[layer][wy][wx]=null;invalidNbrs(wx,wy,layer);}
+    }else if(curLayer==='auto'){
       if(world[1][wy][wx]!=null){world[1][wy][wx]=null;invalidNbrs(wx,wy,1);}
       else if(world[0][wy][wx]!=null){world[0][wy][wx]=null;invalidNbrs(wx,wy,0);}
     }else{
-      const l=+curLayer;
-      if(world[l][wy][wx]!=null){world[l][wy][wx]=null;invalidNbrs(wx,wy,l);}
+      const l=+curLayer;if(world[l][wy][wx]!=null){world[l][wy][wx]=null;invalidNbrs(wx,wy,l);}
     }
   });
   schedRender();
@@ -952,27 +859,18 @@ function floodFill(wx,wy,erase){
   snapShot();clearCache();schedRender();autoSave();
 }
 
-// ── HISTORY (undo/redo) ──
 const HIST_MAX=60;
 let history=[],histIdx=-1;
 function snapShot(){
-  // Deep-clone only the changed slice — store full world copy
   const snap=world.map(layer=>layer.map(row=>[...row]));
   if(histIdx<history.length-1)history=history.slice(0,histIdx+1);
-  history.push(snap);
-  if(history.length>HIST_MAX)history.shift();
-  histIdx=history.length-1;
-  updateUndoButtons();
+  history.push(snap);if(history.length>HIST_MAX)history.shift();histIdx=history.length-1;updateUndoButtons();
 }
 function undo(){
-  if(histIdx<=0)return;
-  histIdx--;world=history[histIdx].map(layer=>layer.map(row=>[...row]));
-  clearCache();schedRender();updateStats();updateUndoButtons();
+  if(histIdx<=0)return;histIdx--;world=history[histIdx].map(layer=>layer.map(row=>[...row]));clearCache();schedRender();updateStats();updateUndoButtons();
 }
 function redo(){
-  if(histIdx>=history.length-1)return;
-  histIdx++;world=history[histIdx].map(layer=>layer.map(row=>[...row]));
-  clearCache();schedRender();updateStats();updateUndoButtons();
+  if(histIdx>=history.length-1)return;histIdx++;world=history[histIdx].map(layer=>layer.map(row=>[...row]));clearCache();schedRender();updateStats();updateUndoButtons();
 }
 function updateUndoButtons(){
   const canU=histIdx>0,canR=histIdx<history.length-1;
@@ -981,15 +879,35 @@ function updateUndoButtons(){
 }
 
 let pencilDown=false,lastPC={x:-1,y:-1},shapeStart=null,_batchDraw=false;
+
+// ── FIX: pan starts whether tool is pan, or alt/middle mouse ──
+function isPanGesture(e){return curTool==='pan'||e.button===1||(e.button===0&&e.altKey)||_spaceDown;}
+
 function doDown(wx,wy,erase){
   if(pasteMode){commitPaste(wx,wy);return;}
+  if(curTool==='pan'){return;} // handled by mousedown pan logic
   if(curTool==='pencil'||curTool==='erase'){
     pencilDown=true;lastPC={x:-1,y:-1};
-    if(curTool==='erase'||erase)applyErase([[wx,wy]]);else applyCells([[wx,wy]],false);
+    if(curTool==='erase'||erase){
+      // Lock erase to the block type+layer that was clicked first
+      if(inB(wx,wy)){
+        if(curLayer==='auto'){
+          if(world[1][wy][wx]!=null)        _eraseLock={layer:1,id:world[1][wy][wx]};
+          else if(world[0][wy][wx]!=null)   _eraseLock={layer:0,id:world[0][wy][wx]};
+          else                              _eraseLock=null;
+        }else{
+          const l=+curLayer;
+          _eraseLock=world[l][wy][wx]!=null?{layer:l,id:world[l][wy][wx]}:null;
+        }
+      }
+      applyErase([[wx,wy]]);
+    }else{
+      _eraseLock=null;
+      applyCells([[wx,wy]],false);
+    }
     lastPC={x:wx,y:wy};
   }else if(curTool==='paint'){
-    pencilDown=true;lastPC={x:-1,y:-1};
-    applyPaint([[wx,wy]]);lastPC={x:wx,y:wy};
+    pencilDown=true;lastPC={x:-1,y:-1};applyPaint([[wx,wy]],erase);lastPC={x:wx,y:wy};
   }else if(curTool==='wrench'){
     openWrenchModal(wx,wy);
   }else if(curTool==='fill')floodFill(wx,wy,erase);
@@ -1002,7 +920,7 @@ function doMove(wx,wy,erase){
   if(pencilDown){
     if(wx!==lastPC.x||wy!==lastPC.y){
       const cells=lineCells(lastPC.x<0?wx:lastPC.x,lastPC.y<0?wy:lastPC.y,wx,wy);
-      if(curTool==='paint')applyPaint(cells);
+      if(curTool==='paint')applyPaint(cells,erase);
       else if(curTool==='erase'||erase)applyErase(cells);
       else applyCells(cells,false);
       lastPC={x:wx,y:wy};
@@ -1019,10 +937,9 @@ function doMove(wx,wy,erase){
   }
 }
 function doUp(wx,wy,erase){
+  _eraseLock=null; // clear per-stroke erase lock
   if(pencilDown){pencilDown=false;lastPC={x:-1,y:-1};return;}
-  if(curTool==='select'&&shapeStart){
-    selRect={x0:shapeStart.wx,y0:shapeStart.wy,x1:wx,y1:wy};shapeStart=null;drawSelOverlay();return;
-  }
+  if(curTool==='select'&&shapeStart){selRect={x0:shapeStart.wx,y0:shapeStart.wy,x1:wx,y1:wy};shapeStart=null;drawSelOverlay();return;}
   if(shapeStart){
     let cells=[];
     if(curTool==='line')cells=lineCells(shapeStart.wx,shapeStart.wy,wx,wy);
@@ -1036,7 +953,10 @@ function doUp(wx,wy,erase){
 
 wc.addEventListener('mousedown',e=>{
   e.preventDefault();closeAllDrops();
-  if(e.button===1||(e.button===0&&e.altKey)){dragging=true;dragS={x:e.clientX,y:e.clientY};viewS={x:VIEW.x,y:VIEW.y};wc.style.cursor='grabbing';return;}
+  if(isPanGesture(e)){
+    dragging=true;dragS={x:e.clientX,y:e.clientY};viewS={x:VIEW.x,y:VIEW.y};
+    wc.style.cursor='grabbing';return;
+  }
   const{x:wx,y:wy}=s2w(e.offsetX,e.offsetY);doDown(wx,wy,e.button===2);
 });
 wc.addEventListener('mousemove',e=>{
@@ -1045,8 +965,8 @@ wc.addEventListener('mousemove',e=>{
   if(dragging){VIEW.x=viewS.x+(e.clientX-dragS.x);VIEW.y=viewS.y+(e.clientY-dragS.y);clamp();renderWp();schedRender();return;}
   doMove(wx,wy,e.buttons===2);
   _lastHover={wx,wy};
-  if(!shapeStart&&!pasteMode&&curTool!=='select'){
-    if(inB(wx,wy)) drawHoverHighlight(wx,wy);
+  if(!shapeStart&&!pasteMode&&curTool!=='select'&&curTool!=='pan'){
+    if(inB(wx,wy))drawHoverHighlight(wx,wy);
     else{pvctx.clearRect(0,0,pvc.width,pvc.height);_lastHover=null;}
   }
   const tip=document.getElementById('tooltip');
@@ -1056,12 +976,12 @@ wc.addEventListener('mousemove',e=>{
   }else tip.style.display='none';
 });
 wc.addEventListener('mouseup',e=>{
-  if(dragging){dragging=false;wc.style.cursor='crosshair';return;}
+  if(dragging){dragging=false;updateCursorForTool();return;}
   const{x:wx,y:wy}=s2w(e.offsetX,e.offsetY);
-  if(pencilDown&&curTool!=='paint')snapShot(); // end of stroke = one history entry
+  if(pencilDown&&curTool!=='paint')snapShot();
   doUp(wx,wy,e.button===2);autoSave();
 });
-wc.addEventListener('mouseleave',()=>{dragging=false;pencilDown=false;shapeStart=null;clearPv();document.getElementById('tooltip').style.display='none';});
+wc.addEventListener('mouseleave',()=>{dragging=false;pencilDown=false;shapeStart=null;clearPv();document.getElementById('tooltip').style.display='none';updateCursorForTool();});
 wc.addEventListener('contextmenu',e=>e.preventDefault());
 wc.addEventListener('wheel',e=>{
   e.preventDefault();const rect=wc.getBoundingClientRect();const mx=e.clientX-rect.left,my=e.clientY-rect.top;
@@ -1069,6 +989,15 @@ wc.addEventListener('wheel',e=>{
   VIEW.x=mx-(mx-VIEW.x)*(nz/VIEW.z);VIEW.y=my-(my-VIEW.y)*(nz/VIEW.z);VIEW.z=nz;
   clearCache();clamp();renderWp();schedRender();
 },{passive:false});
+
+// Spacebar pan
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key===' '&&!_spaceDown){_spaceDown=true;wc.style.cursor='grab';}
+});
+document.addEventListener('keyup',e=>{
+  if(e.key===' '){_spaceDown=false;if(!dragging)updateCursorForTool();}
+});
 
 // Touch
 let touches={};let pinchD0=0,viewZ0=1,tpStart=null;
@@ -1093,80 +1022,53 @@ wc.addEventListener('touchend',e=>{
 
 // ── SELECTION / CUT / COPY / PASTE ──
 let selRect=null,clipboard=null,pasteMode=false,pasteOff={x:0,y:0};
-
 function getSelBounds(){
   if(!selRect)return null;
-  return{x0:Math.min(selRect.x0,selRect.x1),y0:Math.min(selRect.y0,selRect.y1),
-         x1:Math.max(selRect.x0,selRect.x1),y1:Math.max(selRect.y0,selRect.y1)};
+  return{x0:Math.min(selRect.x0,selRect.x1),y0:Math.min(selRect.y0,selRect.y1),x1:Math.max(selRect.x0,selRect.x1),y1:Math.max(selRect.y0,selRect.y1)};
 }
 function drawSelOverlay(){
-  clearPv();
-  const cz=CELL*VIEW.z;
+  clearPv();const cz=CELL*VIEW.z;
   if(selRect){
     const b=getSelBounds();
-    pvctx.save();pvctx.strokeStyle='rgba(56,189,248,.9)';pvctx.lineWidth=2;
-    pvctx.setLineDash([6,3]);pvctx.strokeRect(
-      Math.round(VIEW.x+b.x0*cz),Math.round(VIEW.y+b.y0*cz),
-      (b.x1-b.x0+1)*cz,(b.y1-b.y0+1)*cz);
-    pvctx.fillStyle='rgba(56,189,248,.07)';pvctx.fillRect(
-      Math.round(VIEW.x+b.x0*cz),Math.round(VIEW.y+b.y0*cz),
-      (b.x1-b.x0+1)*cz,(b.y1-b.y0+1)*cz);
+    pvctx.save();pvctx.strokeStyle='rgba(56,189,248,.9)';pvctx.lineWidth=2;pvctx.setLineDash([6,3]);
+    pvctx.strokeRect(Math.round(VIEW.x+b.x0*cz),Math.round(VIEW.y+b.y0*cz),(b.x1-b.x0+1)*cz,(b.y1-b.y0+1)*cz);
+    pvctx.fillStyle='rgba(56,189,248,.07)';pvctx.fillRect(Math.round(VIEW.x+b.x0*cz),Math.round(VIEW.y+b.y0*cz),(b.x1-b.x0+1)*cz,(b.y1-b.y0+1)*cz);
     pvctx.restore();
   }
   if(pasteMode&&clipboard){
-    const sz=Math.max(1,Math.round(cz));
-    pvctx.save();pvctx.globalAlpha=0.6;
+    const sz=Math.max(1,Math.round(cz));pvctx.save();pvctx.globalAlpha=0.6;
     clipboard.cells.forEach(([ox,oy,l,id])=>{
-      const wx=pasteOff.x+ox,wy=pasteOff.y+oy;
-      if(!inB(wx,wy))return;
-      const it=IDMAP[id];if(!it)return;
-      pvctx.imageSmoothingEnabled=false;
-      pvctx.drawImage(getCached(it,sz),Math.round(VIEW.x+wx*cz),Math.round(VIEW.y+wy*cz));
-    });
-    pvctx.restore();
+      const wx=pasteOff.x+ox,wy=pasteOff.y+oy;if(!inB(wx,wy))return;const it=IDMAP[id];if(!it)return;
+      pvctx.imageSmoothingEnabled=false;pvctx.drawImage(getCached(it,sz),Math.round(VIEW.x+wx*cz),Math.round(VIEW.y+wy*cz));
+    });pvctx.restore();
   }
 }
-
 function copySel(){
-  const b=getSelBounds();if(!b)return;
-  const cells=[];
-  for(let l=0;l<2;l++)for(let y=b.y0;y<=b.y1;y++)for(let x=b.x0;x<=b.x1;x++){
-    const id=world[l][y][x];if(id!=null)cells.push([x-b.x0,y-b.y0,l,id]);
-  }
+  const b=getSelBounds();if(!b)return;const cells=[];
+  for(let l=0;l<2;l++)for(let y=b.y0;y<=b.y1;y++)for(let x=b.x0;x<=b.x1;x++){const id=world[l][y][x];if(id!=null)cells.push([x-b.x0,y-b.y0,l,id]);}
   clipboard={cells,w:b.x1-b.x0+1,h:b.y1-b.y0+1};
 }
 function cutSel(){
-  copySel();const b=getSelBounds();if(!b)return;
-  snapShot();
+  copySel();const b=getSelBounds();if(!b)return;snapShot();
   for(let l=0;l<2;l++)for(let y=b.y0;y<=b.y1;y++)for(let x=b.x0;x<=b.x1;x++)world[l][y][x]=null;
   selRect=null;clearCache();schedRender();autoSave();
 }
-function startPaste(){
-  if(!clipboard)return;
-  pasteMode=true;pasteOff={x:0,y:0};
-  setTool('paste');drawSelOverlay();
-}
+function startPaste(){if(!clipboard)return;pasteMode=true;pasteOff={x:0,y:0};setTool('paste');drawSelOverlay();}
 function commitPaste(wx,wy){
-  if(!clipboard||!pasteMode)return;
-  snapShot();
-  clipboard.cells.forEach(([ox,oy,l,id])=>{
-    const nx=wx+ox,ny=wy+oy;if(inB(nx,ny))world[l][ny][nx]=id;
-  });
-  clearCache();schedRender();autoSave();
-  pasteMode=false;clearPv();setTool('pencil');
+  if(!clipboard||!pasteMode)return;snapShot();
+  clipboard.cells.forEach(([ox,oy,l,id])=>{const nx=wx+ox,ny=wy+oy;if(inB(nx,ny))world[l][ny][nx]=id;});
+  clearCache();schedRender();autoSave();pasteMode=false;clearPv();setTool('pencil');
 }
 
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   const k=e.key.toLowerCase();
-  // Undo/Redo
   if((e.ctrlKey||e.metaKey)&&k==='z'&&!e.shiftKey){e.preventDefault();undo();return;}
   if((e.ctrlKey||e.metaKey)&&(k==='y'||(k==='z'&&e.shiftKey))){e.preventDefault();redo();return;}
   if((e.ctrlKey||e.metaKey)&&k==='c'){e.preventDefault();copySel();return;}
   if((e.ctrlKey||e.metaKey)&&k==='x'){e.preventDefault();cutSel();return;}
   if((e.ctrlKey||e.metaKey)&&k==='v'){e.preventDefault();startPaste();return;}
   if(e.ctrlKey||e.metaKey)return;
-  // Tools
   if(k==='p')setTool('pencil');else if(k==='l')setTool('line');
   else if(k==='r'&&e.shiftKey)setTool('fillRect');else if(k==='r')setTool('rect');
   else if(k==='c')setTool('circle');else if(k==='f')setTool('fill');
@@ -1175,11 +1077,8 @@ document.addEventListener('keydown',e=>{
   else if(k==='x')cutSel();
   else if(k==='b')openPaintPicker(null);
   else if(k==='w')setTool('wrench');
-  // Layers: 1=block, 2=bg, 0=auto  (also B/G/A)
-  else if(k==='1'||k==='b')setLayer(1);
-  else if(k==='2'||k==='g')setLayer(0);
-  else if(k==='0'||k==='a')setLayer('auto');
-  // Zoom: +/- or =/- 
+  else if(k==='m')setTool('pan');
+  else if(k==='1')setLayer(1);else if(k==='2')setLayer(0);else if(k==='0')setLayer('auto');
   else if(k==='='||k==='+'){
     const cx=wc.width/2,cy=wc.height/2,nz=Math.min(MAXZ,VIEW.z*1.25);
     VIEW.x=cx-(cx-VIEW.x)*(nz/VIEW.z);VIEW.y=cy-(cy-VIEW.y)*(nz/VIEW.z);VIEW.z=nz;
@@ -1188,14 +1087,13 @@ document.addEventListener('keydown',e=>{
     const cx=wc.width/2,cy=wc.height/2,nz=Math.max(MINZ,VIEW.z*0.8);
     VIEW.x=cx-(cx-VIEW.x)*(nz/VIEW.z);VIEW.y=cy-(cy-VIEW.y)*(nz/VIEW.z);VIEW.z=nz;
     clearCache();clamp();renderWp();schedRender();
-  // Home: fit world to view
   }else if(e.key==='Home'){fitView();clamp();renderWp();schedRender();}
-  // Delete/Backspace: erase hovered cell (handled via last known hover)
   else if(k==='escape'){if(pasteMode){pasteMode=false;clearPv();}else if(selRect){selRect=null;clearPv();}else setTool('pencil');}
-});
+},true);
 
-['Pencil','Line','Rect','FillRect','Circle','Fill','Erase','Eyedrop','Select','Wrench'].forEach(n=>{
-  document.getElementById('t'+n).addEventListener('click',()=>setTool(n.charAt(0).toLowerCase()+n.slice(1)));
+['Pencil','Line','Rect','FillRect','Circle','Fill','Erase','Eyedrop','Select','Wrench','Pan'].forEach(n=>{
+  const btn=document.getElementById('t'+n);if(!btn)return;
+  btn.addEventListener('click',()=>setTool(n.charAt(0).toLowerCase()+n.slice(1)));
 });
 document.getElementById('mobTools').querySelectorAll('[data-t]').forEach(b=>{b.addEventListener('click',()=>setTool(b.dataset.t));});
 document.querySelectorAll('[data-l]').forEach(b=>{b.addEventListener('click',()=>{const v=b.dataset.l;setLayer(v==='auto'?'auto':+v);});});
@@ -1203,18 +1101,14 @@ document.getElementById('sbSearch').addEventListener('input',function(){sbQ=this
 document.getElementById('sbFilter').querySelectorAll('.sf').forEach(b=>b.addEventListener('click',()=>{sbFilter=b.dataset.f;document.querySelectorAll('.sf').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderSidebar();}));
 
 function setTool(t){
-  // Cancel paste mode if switching away
   if(pasteMode&&t!=='paste'){pasteMode=false;clearPv();}
   if(t!=='select')selRect=null;
   curTool=t;shapeStart=null;
   if(t!=='select'&&t!=='paste')clearPv();
-  const nm={pencil:'Pencil',line:'Line',rect:'Rectangle',fillRect:'Filled Rect',circle:'Circle',fill:'Fill',erase:'Erase',eyedrop:'Eyedrop',select:'Select',cut:'Cut',copy:'Copy',paste:'Paste',paint:'Paint',wrench:'Wrench'};
+  const nm={pencil:'Pencil',line:'Line',rect:'Rectangle',fillRect:'Filled Rect',circle:'Circle',fill:'Fill',erase:'Erase',eyedrop:'Eyedrop',select:'Select',cut:'Cut',copy:'Copy',paste:'Paste',paint:'Paint',wrench:'Wrench',pan:'Pan'};
   document.getElementById('statTool').textContent=nm[t]||t;
-  const cur=t==='eyedrop'?'cell':t==='fill'?'copy':t==='select'?'crosshair':t==='paste'?'copy':'crosshair';
-  wc.style.cursor=cur;
-  // desktop: match by id
+  updateCursorForTool();
   document.querySelectorAll('.tg .tbtn[id]').forEach(b=>{const bt='t'+t.charAt(0).toUpperCase()+t.slice(1);b.classList.toggle('active',b.id===bt);});
-  // mobile
   document.querySelectorAll('#mobTools [data-t]').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
   updateUndoButtons();
 }
@@ -1225,21 +1119,47 @@ function setLayer(l){
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('open');}
-// ---- SIZE ----
+
 document.getElementById('sizeSel').addEventListener('change',function(){if(this.value==='custom'){document.getElementById('sizeModal').classList.add('open');return;}const[w,h]=this.value.split('x').map(Number);resizeWorld(w,h);});
 function applyCustomSize(){const w=Math.max(10,Math.min(500,+document.getElementById('customW').value||100));const h=Math.max(10,Math.min(200,+document.getElementById('customH').value||59));closeModal('sizeModal');resizeWorld(w,h);}
-function resizeWorld(w,h){if(!confirm(`Resize to ${w}x${h}?`))return;WW=w;WH=h;for(let l=0;l<2;l++){world[l]=world[l].slice(0,h);while(world[l].length<h)world[l].push(new Array(w).fill(null));world[l]=world[l].map(row=>{const r=row.slice(0,w);while(r.length<w)r.push(null);return r;});wrenchOverrides[l]=wrenchOverrides[l].slice(0,h);while(wrenchOverrides[l].length<h)wrenchOverrides[l].push(new Array(w).fill(null));wrenchOverrides[l]=wrenchOverrides[l].map(row=>{const r=row.slice(0,w);while(r.length<w)r.push(null);return r;});}paintLayer=paintLayer.slice(0,h);while(paintLayer.length<h)paintLayer.push(new Array(w).fill(null));paintLayer=paintLayer.map(row=>{const r=row.slice(0,w);while(r.length<w)r.push(null);return r;});fitView();clearCache();renderWp();schedRender();updateStats();}
+function resizeWorld(w,h){
+  if(!confirm(`Resize to ${w}x${h}?`))return;WW=w;WH=h;
+  for(let l=0;l<2;l++){
+    world[l]=world[l].slice(0,h);while(world[l].length<h)world[l].push(new Array(w).fill(null));
+    world[l]=world[l].map(row=>{const r=row.slice(0,w);while(r.length<w)r.push(null);return r;});
+    wrenchOverrides[l]=wrenchOverrides[l].slice(0,h);while(wrenchOverrides[l].length<h)wrenchOverrides[l].push(new Array(w).fill(null));
+    wrenchOverrides[l]=wrenchOverrides[l].map(row=>{const r=row.slice(0,w);while(r.length<w)r.push(null);return r;});
+  }
+  paintLayer=paintLayer.slice(0,h);while(paintLayer.length<h)paintLayer.push(new Array(w).fill(null));
+  paintLayer=paintLayer.map(row=>{const r=row.slice(0,w);while(r.length<w)r.push(null);return r;});
+  fitView();clearCache();renderWp();schedRender();updateStats();
+}
 function fitView(){const m=40,sx=(wc.width-m*2)/(WW*CELL),sy=(wc.height-m*2)/(WH*CELL);VIEW.z=Math.max(MINZ,Math.min(MAXZ,Math.min(sx,sy)));VIEW.x=(wc.width-WW*CELL*VIEW.z)/2;VIEW.y=(wc.height-WH*CELL*VIEW.z)/2;}
-function updateStats(){document.getElementById('statSize').textContent=`${WW}x${WH}`;let tot=0;for(let l=0;l<2;l++)for(let y=0;y<WH;y++)for(let x=0;x<WW;x++)if(world[l][y][x]!=null)tot++;document.getElementById('statBlocks').textContent=tot;const ic=document.getElementById('statItems');if(ic)ic.textContent=_sbList.length||ITEMS.filter(placeable).length;}
+function updateStats(){document.getElementById('statSize').textContent=`${WW}x${WH}`;let tot=0;for(let l=0;l<2;l++)for(let y=0;y<WH;y++)for(let x=0;x<WW;x++)if(world[l][y][x]!=null)tot++;document.getElementById('statBlocks').textContent=tot;const ic=document.getElementById('statItems');if(ic)ic.textContent=_sbList.length||ITEMS.filter(placeable).length;const iv=document.getElementById('statVer');if(iv)iv.textContent=CFG.ver;}
 
 // ---- WALLPAPER ----
 let curWp='sunny';const wpA={};
 const CPOS=[];(()=>{let s=42;const r=()=>{s=((s*1103515245)+12345)&0x7fffffff;return s/0x7fffffff;};for(let i=0;i<14;i++)CPOS.push({x:r(),y:0.10+r()*0.22,sc:0.5+r()*0.9});})();
 function lwp(f){if(wpA[f])return wpA[f];const i=new Image();i.crossOrigin='anonymous';i.src=TEX+f;i.onload=()=>renderWp();wpA[f]=i;return i;}
+function lcity(f){const k='city_'+f;if(wpA[k])return wpA[k];const i=new Image();i.crossOrigin='anonymous';i.onload=()=>renderWp();i.src=TEX+f;wpA[k]=i;return i;}
 function renderWp(){
   const W=wpc.width,H=wpc.height;wpctx.clearRect(0,0,W,H);
-  if(curWp==='none'){const g=wpctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#091020');g.addColorStop(1,'#040810');wpctx.fillStyle=g;wpctx.fillRect(0,0,W,H);return;}
   const cz=CELL*VIEW.z,wPW=WW*cz,wPH=WH*cz,wX=VIEW.x,wY=VIEW.y;
+  if(curWp==='none'){const g=wpctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#091020');g.addColorStop(1,'#040810');wpctx.fillStyle=g;wpctx.fillRect(0,0,W,H);return;}
+  if(curWp==='city'){
+    const csky=lcity('city_sky.png');
+    if(csky&&csky.complete&&csky.naturalWidth){wpctx.imageSmoothingEnabled=false;wpctx.drawImage(csky,0,0,W,H);}
+    else{const g=wpctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0a0e1a');g.addColorStop(1,'#151c2e');wpctx.fillStyle=g;wpctx.fillRect(0,0,W,H);}
+    const csl=lcity('city_skyline.png');
+    if(csl&&csl.complete&&csl.naturalWidth){wpctx.imageSmoothingEnabled=true;const slH=Math.round((csl.naturalHeight/csl.naturalWidth)*wPW);wpctx.drawImage(csl,wX,wY+wPH-Math.round(slH*0.65),wPW,slH);}
+    const cc3=lcity('city_clouds3.png');
+    if(cc3&&cc3.complete&&cc3.naturalWidth){const cH=Math.round((cc3.naturalHeight/cc3.naturalWidth)*wPW);wpctx.globalAlpha=0.90;wpctx.imageSmoothingEnabled=true;wpctx.drawImage(cc3,wX,wY,wPW,cH);wpctx.globalAlpha=1;}
+    const cc2=lcity('city_clouds2.png');
+    if(cc2&&cc2.complete&&cc2.naturalWidth){const cH=Math.round((cc2.naturalHeight/cc2.naturalWidth)*wPW);wpctx.globalAlpha=0.85;wpctx.imageSmoothingEnabled=true;wpctx.drawImage(cc2,wX,wY+Math.round(cH*0.25),wPW,cH);wpctx.globalAlpha=1;}
+    const cc1=lcity('city_clouds1.png');
+    if(cc1&&cc1.complete&&cc1.naturalWidth){const cH=Math.round((cc1.naturalHeight/cc1.naturalWidth)*wPW);wpctx.globalAlpha=0.80;wpctx.imageSmoothingEnabled=true;wpctx.drawImage(cc1,wX,wY+Math.round(cH*0.45),wPW,cH);wpctx.globalAlpha=1;}
+    return;
+  }
   const sky=lwp('b_skybg.png');
   if(sky&&sky.complete&&sky.naturalWidth){wpctx.imageSmoothingEnabled=true;wpctx.drawImage(sky,0,0,W,H);}
   else{const g=wpctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#87CEEB');g.addColorStop(1,'#5BA3D9');wpctx.fillStyle=g;wpctx.fillRect(0,0,W,H);}
@@ -1247,344 +1167,547 @@ function renderWp(){
   ['hills3.png','hills2.png','hills1.png'].forEach((f,i)=>{const im=lwp(f);if(!im||!im.complete||!im.naturalWidth)return;const aH=(im.naturalHeight/im.naturalWidth)*wPW;wpctx.globalAlpha=0.88+i*0.05;wpctx.imageSmoothingEnabled=true;wpctx.drawImage(im,wX,wY+wPH-aH*(0.82+i*0.04),wPW,aH);wpctx.globalAlpha=1;});
   const cl=lwp('cloud.png');if(cl&&cl.complete&&cl.naturalWidth){CPOS.forEach(cp=>{const cw=Math.round(wPW*0.09*cp.sc),ch=Math.round(cw*(cl.naturalHeight/cl.naturalWidth));wpctx.globalAlpha=0.72;wpctx.imageSmoothingEnabled=true;wpctx.drawImage(cl,wX+cp.x*wPW-cw/2,wY+cp.y*wPH,cw,ch);wpctx.globalAlpha=1;});}
 }
-
 // ---- PRESETS ----
 const PN={bedrock:'Bedrock',dirt:'Dirt',rock:'Rock',lava:'Lava',caveBg:'Cave Background',mainDoor:'Main Door'};
 let PID={};
 function resolvePIDs(){Object.entries(PN).forEach(([k,name])=>{const it=IMAP[name];if(it)PID[k]=it.id;});}
 function mRNG(seed){let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};}
-function applyPreset(name){
-  if(!dataReady){alert('Items not loaded yet.');return;}
-  if(!confirm(`Apply preset "${name}"? This overwrites the current world.`))return;
-  resolvePIDs();initWorld(WW,WH);const rng=mRNG(12345);const W=WW,H=WH;const{bedrock,dirt,rock,lava,caveBg,mainDoor}=PID;
-  if(name==='empty'){/* empty */}
-  else if(name==='clear'){
-    if(bedrock!=null)for(let y=H-6;y<H;y++)for(let x=0;x<W;x++)world[1][y][x]=bedrock;
-  }
-  else if(name==='normal'){
-    // 1. Bedrock bottom 6 rows
-    if(bedrock!=null)for(let y=H-6;y<H;y++)for(let x=0;x<W;x++)world[1][y][x]=bedrock;
-    // 2. Lava mix zone: rows H-10 to H-7, 40% less lava (was 0.58, now 0.35)
-    for(let y=H-10;y<H-6;y++){
-      for(let x=0;x<W;x++){
-        const r=rng();
-        if(r<0.35&&lava!=null)world[1][y][x]=lava;
-        else if(r<0.88&&dirt!=null)world[1][y][x]=dirt;
-        else if(rock!=null)world[1][y][x]=rock;
-        else if(dirt!=null)world[1][y][x]=dirt;
-      }
-    }
-    // 3. Dirt zone: y=24..H-11 (solid dirt, rocks only below y=26 to keep top layer clean)
-    if(dirt!=null){
-      for(let y=24;y<H-10;y++)for(let x=0;x<W;x++)world[1][y][x]=dirt;
-      // Rocks only in deeper dirt (y>=26), never in the top two dirt rows
-      if(rock!=null){
-        const numR=60+Math.floor(rng()*91);let placed=0;
-        for(let t2=0;t2<numR*10&&placed<numR;t2++){
-          const rx=Math.floor(rng()*W);const ry=26+Math.floor(rng()*(H-10-26));
-          if(world[1][ry][rx]===dirt){world[1][ry][rx]=rock;placed++;}
-        }
-      }
-    }
-    // 4. Main Door at y=23, random X; bedrock below door at y=24
-    if(mainDoor!=null){
-      const doorX=5+Math.floor(rng()*(W-10));
-      world[1][23][doorX]=mainDoor;
-      if(bedrock!=null&&24<H)world[1][24][doorX]=bedrock;
-    }
-    // 5. Cave background ONLY behind blocks that exist in FG layer
-    if(caveBg!=null){
-      for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[1][y][x]!==null)world[0][y][x]=caveBg;
-    }
-  }
-  // After preset, clear ALL cache and invalidate every placed cell
-  clearCache();
-  closeAllDrops();schedRender();renderWp();updateStats();autoSave();
-}
 
-// ---- DROPDOWNS ----
+
 function toggleDrop(id){document.getElementById(id).classList.toggle('open');['presetMenu','wpMenu'].filter(x=>x!==id).forEach(x=>document.getElementById(x).classList.remove('open'));}
 function closeAllDrops(){['presetMenu','wpMenu'].forEach(id=>document.getElementById(id).classList.remove('open'));}
 document.addEventListener('click',e=>{if(!e.target.closest('#presetWrap')&&!e.target.closest('#wpWrap'))closeAllDrops();});
 function toggleGrid(){showGrid=!showGrid;const b=document.getElementById('tGrid');if(b)b.classList.toggle('active',showGrid);schedRender();}
 function toggleCoords(){showCoords=!showCoords;const b=document.getElementById('tCoords');if(b)b.classList.toggle('active',showCoords);schedRender();}
-function setWallpaper(w){curWp=w;document.getElementById('wpBtn').textContent=w==='sunny'?'Sunny v':'None v';document.getElementById('wpMenu').classList.remove('open');renderWp();}
+function setWallpaper(w){curWp=w;const _wl={'sunny':'Sunny','city':'Rainy City','none':'None'};document.getElementById('wpBtn').textContent=(_wl[w]||w)+' v';document.getElementById('wpMenu').classList.remove('open');renderWp();}
 
-// ---- EXPORT/IMPORT/CLEAR ----
+// ── FIX: confirmClear also resets paintLayer and wrenchOverrides ──
+function confirmClear(){
+  if(!confirm('Clear entire world?'))return;
+  initWorld(WW,WH); // resets world + paintLayer + wrenchOverrides
+  clearCache();renderWp();schedRender();updateStats();autoSave();
+}
+
 function exportPlan(){const d={v:'5.0',size:{w:WW,h:WH},wp:curWp,world,paintLayer,wrenchOverrides};const b=new Blob([JSON.stringify(d)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`gt-world-${WW}x${WH}.json`;a.click();}
 function importPlan(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!d.world||!d.size)throw new Error('Invalid');WW=d.size.w;WH=d.size.h;world=d.world;if(d.paintLayer)paintLayer=d.paintLayer;else paintLayer=Array.from({length:WH},()=>new Array(WW).fill(null));if(d.wrenchOverrides)wrenchOverrides=d.wrenchOverrides;else wrenchOverrides=Array.from({length:2},()=>Array.from({length:WH},()=>new Array(WW).fill(null)));if(d.wp)setWallpaper(d.wp);fitView();clearCache();renderWp();schedRender();autoSave();updateStats();}catch(err){alert('Load failed: '+err.message);}};r.readAsText(f);};inp.click();}
-function confirmClear(){if(!confirm('Clear entire world?'))return;initWorld();clearCache();renderWp();schedRender();updateStats();autoSave();}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
-// ---- AUTOSAVE ----
-let _saveT=null;
-function buildSession(){return{v:'5.0',size:{w:WW,h:WH},wp:curWp,world,paintLayer,wrenchOverrides,ts:Date.now()};}
+// ── FIX: renderWorldToPng — renders to a T-per-cell canvas and downloads ──
+async function renderWorldToPng(){
+  const overlay=document.getElementById('renderOverlay');
+  const bar=document.getElementById('renderBar');
+  const label=document.getElementById('renderLabel');
+  overlay.classList.add('open');
+  bar.style.width='0%';
+  label.textContent='Rendering world…';
+
+  await new Promise(r=>setTimeout(r,30)); // let UI update
+
+  const cellSize=T; // 32px per cell — native resolution
+  const W=WW*cellSize,H=WH*cellSize;
+  const off=new OffscreenCanvas(W,H);
+  const octx=off.getContext('2d');
+
+  // Wallpaper background — render full wallpaper into the output PNG
+  if(curWp==='none'){
+    const g=octx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#091020');g.addColorStop(1,'#040810');octx.fillStyle=g;octx.fillRect(0,0,W,H);
+  }else if(curWp==='city'){
+    const csky=wpA['city_city_sky.png'];
+    if(csky&&csky.complete&&csky.naturalWidth){octx.imageSmoothingEnabled=false;octx.drawImage(csky,0,0,W,H);}
+    else{const g=octx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0a0e1a');g.addColorStop(1,'#151c2e');octx.fillStyle=g;octx.fillRect(0,0,W,H);}
+    const csl=wpA['city_city_skyline.png'];
+    if(csl&&csl.complete&&csl.naturalWidth){octx.imageSmoothingEnabled=true;const slH=Math.round((csl.naturalHeight/csl.naturalWidth)*W);octx.drawImage(csl,0,H-Math.round(slH*0.65),W,slH);}
+    const cc3=wpA['city_city_clouds3.png'];
+    if(cc3&&cc3.complete&&cc3.naturalWidth){const cH=Math.round((cc3.naturalHeight/cc3.naturalWidth)*W);octx.globalAlpha=0.90;octx.imageSmoothingEnabled=true;octx.drawImage(cc3,0,0,W,cH);octx.globalAlpha=1;}
+    const cc2=wpA['city_city_clouds2.png'];
+    if(cc2&&cc2.complete&&cc2.naturalWidth){const cH=Math.round((cc2.naturalHeight/cc2.naturalWidth)*W);octx.globalAlpha=0.85;octx.imageSmoothingEnabled=true;octx.drawImage(cc2,0,Math.round(cH*0.25),W,cH);octx.globalAlpha=1;}
+    const cc1=wpA['city_city_clouds1.png'];
+    if(cc1&&cc1.complete&&cc1.naturalWidth){const cH=Math.round((cc1.naturalHeight/cc1.naturalWidth)*W);octx.globalAlpha=0.80;octx.imageSmoothingEnabled=true;octx.drawImage(cc1,0,Math.round(cH*0.45),W,cH);octx.globalAlpha=1;}
+  }else{
+    // Sunny wallpaper
+    const sky=wpA['b_skybg.png']||IMGS['b_skybg.png'];
+    if(sky&&sky.complete&&sky.naturalWidth){
+      octx.imageSmoothingEnabled=true;octx.drawImage(sky,0,0,W,H);
+    }else{
+      const g=octx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#87CEEB');g.addColorStop(1,'#5BA3D9');octx.fillStyle=g;octx.fillRect(0,0,W,H);
+    }
+    // Sun — positioned at ~73% x, ~2.5% y
+    const sun=wpA['sun.png'];
+    if(sun&&sun.complete&&sun.naturalWidth){
+      octx.imageSmoothingEnabled=true;
+      const sw=Math.round(W*0.11);octx.drawImage(sun,Math.round(W*0.73),Math.round(H*0.025),sw,sw);
+    }
+    // Hills (back to front)
+    ['hills3.png','hills2.png','hills1.png'].forEach((f,i)=>{
+      const im=wpA[f];if(!im||!im.complete||!im.naturalWidth)return;
+      const aH=Math.round((im.naturalHeight/im.naturalWidth)*W);
+      octx.globalAlpha=0.88+i*0.05;octx.imageSmoothingEnabled=true;
+      octx.drawImage(im,0,H-Math.round(aH*(0.82+i*0.04)),W,aH);
+      octx.globalAlpha=1;
+    });
+    // Clouds
+    const cl=wpA['cloud.png'];
+    if(cl&&cl.complete&&cl.naturalWidth){
+      CPOS.forEach(cp=>{
+        const cw=Math.round(W*0.09*cp.sc),ch=Math.round(cw*(cl.naturalHeight/cl.naturalWidth));
+        octx.globalAlpha=0.72;octx.imageSmoothingEnabled=true;
+        octx.drawImage(cl,Math.round(cp.x*W-cw/2),Math.round(cp.y*H),cw,ch);
+        octx.globalAlpha=1;
+      });
+    }
+  }
+
+  const total=WH*WW*2;let done=0;
+  // Draw BG layer
+  for(let wy=0;wy<WH;wy++){
+    for(let wx=0;wx<WW;wx++){
+      const id=world[0][wy][wx];if(id!=null){const it=IDMAP[id];if(it){const c=getCached(it,cellSize,wx,wy,0);octx.imageSmoothingEnabled=false;octx.drawImage(c,wx*cellSize,wy*cellSize);}}
+      done++;
+    }
+    bar.style.width=Math.round((done/total)*60)+'%';
+    label.textContent=`Rendering BG row ${wy+1}/${WH}…`;
+    if(wy%4===0)await new Promise(r=>setTimeout(r,0));
+  }
+  // Draw FG layer
+  for(let wy=0;wy<WH;wy++){
+    for(let wx=0;wx<WW;wx++){
+      const id=world[1][wy][wx];if(id!=null){const it=IDMAP[id];if(it){const c=getCached(it,cellSize,wx,wy,1);octx.imageSmoothingEnabled=false;octx.drawImage(c,wx*cellSize,wy*cellSize);}}
+      done++;
+    }
+    bar.style.width=Math.round((done/total)*90)+'%';
+    label.textContent=`Rendering FG row ${wy+1}/${WH}…`;
+    if(wy%4===0)await new Promise(r=>setTimeout(r,0));
+  }
+  // Paint overlay
+  for(let wy=0;wy<WH;wy++){
+    for(let wx=0;wx<WW;wx++){
+      const pid=paintLayer[wy]&&paintLayer[wy][wx];if(!pid)continue;
+      const col=getPaintColor(pid);
+      octx.save();octx.globalAlpha=0.52;octx.fillStyle=col.hex;octx.fillRect(wx*cellSize,wy*cellSize,cellSize,cellSize);octx.restore();
+    }
+  }
+
+  bar.style.width='100%';label.textContent='Saving PNG…';
+  await new Promise(r=>setTimeout(r,30));
+
+  const blob=await off.convertToBlob({type:'image/png'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`gt-world-render-${WW}x${WH}.png`;a.click();
+  URL.revokeObjectURL(url);
+
+  overlay.classList.remove('open');
+}
+
+// ════════════════════════════════════════════════════
+// AUTOSAVE + SESSION MANAGEMENT
+//
+// HOW LOADING WORKS (called after loadItems() finishes):
+//   1. Check sessionStorage 'gt_wp_intent' — set by world-home.html
+//      - type:'new'      → initWorld + applyPreset, clear intent
+//      - type:'existing' → restore world data, clear intent
+//   2. If no intent → check localStorage 'gt_wp_v4' (autosave fallback)
+//   3. If nothing → start blank
+//
+// autoSave() writes current state to localStorage 'gt_wp_v4' + updates history
+// ════════════════════════════════════════════════════
+
+const SS_INTENT  = 'gt_wp_intent';   // sessionStorage: one-time handoff from world-home
+const LS_SESSION = 'gt_wp_v4';       // localStorage: rolling autosave
+const LS_HISTORY = 'gt_wp_history';  // localStorage: history list
+
+let _saveT = null;
+let _worldName = 'World';
+
+function buildSession(){
+  return {v:'5.0', name:_worldName, size:{w:WW,h:WH}, wp:curWp, world, paintLayer, wrenchOverrides, ts:Date.now()};
+}
+
 function autoSave(){
-  if(_saveT)clearTimeout(_saveT);
-  _saveT=setTimeout(()=>{
+  if(_saveT) clearTimeout(_saveT);
+  _saveT = setTimeout(()=>{
     try{
-      const s=buildSession();
-      localStorage.setItem('gt_wp_v4',JSON.stringify(s));
-      // Update history entry that matches current name/ts if possible
+      const s = buildSession();
+      localStorage.setItem(LS_SESSION, JSON.stringify(s));
       _updateHistory(s);
     }catch(e){}
-  },2500);
+  }, 800);
 }
+
 function _updateHistory(s){
   try{
-    const LS='gt_wp_history';
-    const h=JSON.parse(localStorage.getItem(LS)||'[]');
-    // Update the first (most recent) entry if same session name
-    if(h.length&&h[0].name===_worldName){
-      h[0]={...s,name:_worldName};
-    }else{
-      h.unshift({...s,name:_worldName});
-      if(h.length>20)h.pop();
-    }
-    localStorage.setItem(LS,JSON.stringify(h));
+    const h = JSON.parse(localStorage.getItem(LS_HISTORY)||'[]');
+    // Match by name only — no timestamp restriction so worlds saved any time ago are updated
+    const idx = h.findIndex(e => e.name === _worldName);
+    if(idx >= 0){ h[idx] = s; }
+    else{ h.unshift(s); if(h.length > 20) h.pop(); }
+    localStorage.setItem(LS_HISTORY, JSON.stringify(h));
   }catch(e){}
 }
-let _worldName='World';
+
 function manualSave(){
   try{
-    const s=buildSession();
-    s.name=_worldName;
-    localStorage.setItem('gt_wp_v4',JSON.stringify(s));
+    const s = buildSession();
+    localStorage.setItem(LS_SESSION, JSON.stringify(s));
     _updateHistory(s);
-    // Flash feedback on the button
-    const btn=document.getElementById('tSave');
-    if(btn){const orig=btn.innerHTML;btn.innerHTML='✓ Saved';btn.style.color='var(--green)';setTimeout(()=>{btn.innerHTML=orig;},1200);}
-  }catch(e){alert('Save failed: '+e.message);}
+    const btn = document.getElementById('tSave');
+    if(btn){ const orig=btn.innerHTML; btn.innerHTML='✓ Saved'; btn.style.color='var(--green)'; setTimeout(()=>{btn.innerHTML=orig;},1200); }
+  }catch(e){ alert('Save failed: '+e.message); }
 }
+
+// ── MAIN SESSION RESTORE — called after items loaded ──
 function checkRestore(){
-  // Called after dataReady=true — items fully loaded
+  // Step 1: check sessionStorage for a one-time intent from world-home
   try{
-    const raw=localStorage.getItem('gt_wp_v4');
-    if(!raw)return;
-    const d=JSON.parse(raw);
-    WW=d.size.w; WH=d.size.h;
-    if(d.name) _worldName=d.name;
-    if(d.wp) setWallpaper(d.wp);
+    const raw = sessionStorage.getItem(SS_INTENT);
+    if(raw){
+      sessionStorage.removeItem(SS_INTENT); // consume immediately — only fires once
+      const intent = JSON.parse(raw);
 
-    if(d._isNew){
-      // Brand new world — ignore any saved blocks, build clean from preset
-      initWorld(WW,WH);  // fresh empty arrays
-      paintLayer=Array.from({length:WH},()=>new Array(WW).fill(null));
-      wrenchOverrides=Array.from({length:2},()=>Array.from({length:WH},()=>new Array(WW).fill(null)));
-      fitView(); clearCache(); renderWp(); schedRender(); updateStats();
-      if(d.preset && d.preset!=='empty') applyPresetSilent(d.preset);
-      // Save filled world back, clearing _isNew so next open is a normal restore
-      const s=buildSession(); s.name=_worldName;
-      localStorage.setItem('gt_wp_v4',JSON.stringify(s));
-      _updateHistory(s);
-    } else {
-      // Existing world — restore normally
-      world=d.world;
-      paintLayer=d.paintLayer||Array.from({length:WH},()=>new Array(WW).fill(null));
-      wrenchOverrides=d.wrenchOverrides||Array.from({length:2},()=>Array.from({length:WH},()=>new Array(WW).fill(null)));
-      fitView(); clearCache(); renderWp(); schedRender(); updateStats();
+      if(intent.type === 'new'){
+        // Apply version if specified in intent
+        if(intent.ver && VERSIONS.includes(intent.ver)){
+          CFG.ver=intent.ver; TEX=`${RAW}/${CFG.ver}/decoded/textures/`;
+          localStorage.setItem('gt_wp_ver_pref',intent.ver);
+        }
+        // New world — build from scratch with preset
+        _worldName = intent.name || 'New World';
+        WW = intent.size.w; WH = intent.size.h;
+        initWorld(WW, WH);
+        if(intent.wp) setWallpaper(intent.wp);
+        fitView(); clearCache(); renderWp(); schedRender(); updateStats();
+        if(intent.preset && intent.preset !== 'empty'){
+          _applyPreset(intent.preset);
+        }
+        // Save immediately so this world is in autosave
+        const s = buildSession();
+        localStorage.setItem(LS_SESSION, JSON.stringify(s));
+        _updateHistory(s);
+        return; // done
+      }
+
+      if(intent.type === 'existing'){
+        // Home page writes the full world to gt_wp_v4 before navigating.
+        // The intent just signals "load from gt_wp_v4", optionally with a name hint.
+        // Fall through to Step 2 (autosave) which will load it.
+        // If intent also carries full data (legacy), use it directly.
+        const d = intent.data;
+        if(d && d.world && d.size){
+          _worldName = d.name || 'World';
+          WW = d.size.w || 100; WH = d.size.h || 60;
+          world = d.world;
+          paintLayer = d.paintLayer || Array.from({length:WH},()=>new Array(WW).fill(null));
+          wrenchOverrides = d.wrenchOverrides || Array.from({length:2},()=>Array.from({length:WH},()=>new Array(WW).fill(null)));
+          if(d.wp) setWallpaper(d.wp);
+          fitView(); clearCache(); renderWp(); schedRender(); updateStats();
+          const _s = buildSession();
+          localStorage.setItem(LS_SESSION, JSON.stringify(_s));
+          _updateHistory(_s);
+          return;
+        }
+        // No inline data — fall through to load from gt_wp_v4 (Step 2)
+        // (home page already wrote the world there)
+      }
     }
-  }catch(e){}
-}
-function restoreSaved(){try{const raw=localStorage.getItem('gt_wp_v4');if(!raw)return;const d=JSON.parse(raw);WW=d.size.w;WH=d.size.h;world=d.world;if(d.paintLayer)paintLayer=d.paintLayer;else paintLayer=Array.from({length:WH},()=>new Array(WW).fill(null));if(d.wrenchOverrides)wrenchOverrides=d.wrenchOverrides;else wrenchOverrides=Array.from({length:2},()=>Array.from({length:WH},()=>new Array(WW).fill(null)));if(d.wp)setWallpaper(d.wp);fitView();clearCache();renderWp();schedRender();updateStats();
-  if(d.name)_worldName=d.name;
-  // Auto-apply preset if world is fresh/empty (from homepage "New World")
-  if(d.preset&&d.preset!=='empty'){
-    let empty=true;outer2:for(let l=0;l<2;l++)for(let y=0;y<WH;y++)for(let x=0;x<WW;x++)if(world[l][y][x]!=null){empty=false;break outer2;}
-    if(empty){applyPresetSilent(d.preset);}
-  }
-  }catch(e){/* no saved session yet, start fresh */}}
+  }catch(e){ sessionStorage.removeItem(SS_INTENT); }
 
-// applyPreset without confirm dialogs — used when loading a new world from homepage
-function applyPresetSilent(name){
-  if(!dataReady)return;
-  resolvePIDs();initWorld(WW,WH);const rng=mRNG(12345);const W=WW,H=WH;const{bedrock,dirt,rock,lava,caveBg,mainDoor}=PID;
+  // Step 2: no intent — fall back to autosave
+  try{
+    const raw = localStorage.getItem(LS_SESSION);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(!d.world || !d.size){ console.warn('[restore] autosave has no world',d); return; }
+    _worldName = d.name || 'World';
+    WW = d.size.w || 100; WH = d.size.h || 60;
+    world = d.world;
+    paintLayer = d.paintLayer || Array.from({length:WH},()=>new Array(WW).fill(null));
+    wrenchOverrides = d.wrenchOverrides || Array.from({length:2},()=>Array.from({length:WH},()=>new Array(WW).fill(null)));
+    if(d.wp) setWallpaper(d.wp);
+    fitView(); clearCache(); renderWp(); schedRender(); updateStats();
+  }catch(e){ console.error('[restore] autosave failed',e); }
+}
+
+// ── PRESET APPLICATION (used by checkRestore for new worlds + toolbar) ──
+function _applyPreset(name){
+  // Must be called after dataReady=true and initWorld()
+  resolvePIDs();
+  // Use a time-based seed so every world is unique
+  const rng=mRNG(Date.now()^(Math.random()*0xffffffff));
+  const W=WW, H=WH;
+  const {bedrock,dirt,rock,lava,caveBg,mainDoor}=PID;
   if(name==='clear'){
-    if(bedrock!=null)for(let y=H-6;y<H;y++)for(let x=0;x<W;x++)world[1][y][x]=bedrock;
-  }else if(name==='normal'){
-    if(bedrock!=null)for(let y=H-6;y<H;y++)for(let x=0;x<W;x++)world[1][y][x]=bedrock;
-    for(let y=H-10;y<H-6;y++){for(let x=0;x<W;x++){const r=rng();if(r<0.35&&lava!=null)world[1][y][x]=lava;else if(r<0.88&&dirt!=null)world[1][y][x]=dirt;else if(rock!=null)world[1][y][x]=rock;else if(dirt!=null)world[1][y][x]=dirt;}}
-    if(dirt!=null){for(let y=24;y<H-10;y++)for(let x=0;x<W;x++)world[1][y][x]=dirt;if(rock!=null){const numR=60+Math.floor(rng()*91);let placed=0;for(let t2=0;t2<numR*10&&placed<numR;t2++){const rx=Math.floor(rng()*W);const ry=26+Math.floor(rng()*(H-10-26));if(world[1][ry][rx]===dirt){world[1][ry][rx]=rock;placed++;}}}}
-    if(mainDoor!=null){const doorX=5+Math.floor(rng()*(W-10));world[1][23][doorX]=mainDoor;if(bedrock!=null&&24<H)world[1][24][doorX]=bedrock;}
-    if(caveBg!=null){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[1][y][x]!==null)world[0][y][x]=caveBg;}
+    if(bedrock!=null) for(let y=H-6;y<H;y++) for(let x=0;x<W;x++) world[1][y][x]=bedrock;
+  } else if(name==='normal'){
+    // 1. Solid bedrock — bottom 6 rows
+    if(bedrock!=null) for(let y=H-6;y<H;y++) for(let x=0;x<W;x++) world[1][y][x]=bedrock;
+
+    // 2. Transition zone (4 rows above bedrock): mostly dirt, random lava pockets
+    for(let y=H-10;y<H-6;y++){
+      for(let x=0;x<W;x++){
+        const r=rng();
+        if(r<0.22&&lava!=null)       world[1][y][x]=lava;   // ~22% lava
+        else if(dirt!=null)           world[1][y][x]=dirt;
+      }
+    }
+
+    // 3. Main dirt body (y=24 to H-11)
+    if(dirt!=null){
+      for(let y=24;y<H-10;y++) for(let x=0;x<W;x++) world[1][y][x]=dirt;
+
+      // Scatter random lava veins inside the dirt body (not top 2 rows of dirt)
+      if(lava!=null){
+        const lavaCount = Math.floor(W*0.06 + rng()*W*0.06); // ~6-12% of width as vein seeds
+        for(let i=0;i<lavaCount;i++){
+          const lx=Math.floor(rng()*W);
+          const ly=28+Math.floor(rng()*(H-10-28)); // keep away from top rows
+          // each vein is a small cluster of 1-4 cells
+          const vsize=1+Math.floor(rng()*4);
+          for(let v=0;v<vsize;v++){
+            const vx=Math.max(0,Math.min(W-1,lx+Math.floor(rng()*3)-1));
+            const vy=Math.max(24,Math.min(H-11,ly+Math.floor(rng()*3)-1));
+            world[1][vy][vx]=lava;
+          }
+        }
+      }
+
+      // Scatter random rocks inside the dirt body
+      if(rock!=null){
+        const numR=Math.floor(W*0.5+rng()*W*0.6); // scales with world width
+        let placed=0;
+        for(let t2=0;t2<numR*12&&placed<numR;t2++){
+          const rx=Math.floor(rng()*W);
+          const ry=26+Math.floor(rng()*(H-10-26));
+          if(world[1][ry][rx]===dirt){world[1][ry][rx]=rock;placed++;}
+        }
+      }
+    }
+
+    // 4. Main Door — random X, fixed Y=23 (just above dirt surface)
+    if(mainDoor!=null){
+      const doorX=3+Math.floor(rng()*(W-6));   // keep away from edges
+      world[1][23][doorX]=mainDoor;
+      // bedrock footing under the door
+      if(bedrock!=null&&24<H) world[1][24][doorX]=bedrock;
+    }
+
+    // 5. Cave background behind every placed FG block
+    if(caveBg!=null){
+      for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[1][y][x]!==null) world[0][y][x]=caveBg;
+    }
   }
-  clearCache();schedRender();updateStats();autoSave();
+  clearCache(); schedRender(); updateStats();
 }
 
-// ---- REPOLL ----
+function applyPreset(name){
+  if(!dataReady){alert('Items not loaded yet.');return;}
+  if(!confirm(`Apply preset "${name}"? This overwrites the current world.`))return;
+  initWorld(WW,WH);
+  _applyPreset(name);
+  closeAllDrops(); renderWp(); autoSave();
+}
+
 const rpIv=setInterval(()=>{
   let any=false;const seen=new Set();
   for(let l=0;l<2;l++)for(let y=0;y<WH;y++)for(let x=0;x<WW;x++){
     const id=world[l][y][x];if(id==null||seen.has(id))continue;seen.add(id);
     const it=IDMAP[id];if(!it)continue;const im=getImg(it.file_name);
-    if(im&&im.complete&&im.naturalWidth){
-      const sz=Math.max(1,Math.round(CELL*VIEW.z));
-      for(const k of[...SCACHE.keys()])if(k.startsWith(id+'_')){const c=SCACHE.get(k);if(c&&!c._ok){SCACHE.delete(k);any=true;}}
-    }
+    if(im&&im._loadOk&&im.naturalWidth){for(const k of[...SCACHE.keys()])if(k.startsWith(id+'_')){const c=SCACHE.get(k);if(c&&!c._ok){SCACHE.delete(k);any=true;}}}
   }
   if(any){clearCache();schedRender();}
 },800);
 
-
-// ════════════════════════════════
 // ── PAINT TOOL ──
-// ════════════════════════════════
-// Known paint item IDs and their seed IDs (seed carries the bg_col color)
-const PAINT_IDS=[3478,3480,3482,3484,3486,4888,3490]; // paints
+// Paint IDs: 3478=red, 3480=yellow, 3482=green, 3484=aqua, 3486=blue, 3488=purple, 3490=black
+// Colors decoded from seed item (paintId+1) bg_col using GT formula: bytes=[BB,GG,RR,AA] -> #RRGGBB
+const PAINT_IDS=[3478,3480,3482,3484,3486,3488,3490];
 const VARNISH_ID=3492;
-// Fallback colors if items not loaded
-const PAINT_FALLBACK={3478:"#cc2222",3480:"#ccaa11",3482:"#22aa22",3484:"#11aaaa",3486:"#2244cc",4888:"#7722cc",3490:"#222222"};
+// Correct fallback colors (used only if items not yet loaded)
+const PAINT_FALLBACK={3478:"#EF1B17",3480:"#EFD214",3482:"#17EF1B",3484:"#17EFEF",3486:"#1714EF",3488:"#EF14EF",3490:"#111111"};
+let selPaintItem=null;
 
-let selPaintItem=null; // id (number) or null for varnish
+// GT bg_col decode: int32 stored as [BB,GG,RR,AA] -> #RRGGBB
+function decodeBgCol(bgCol){
+  const h=((bgCol>>>0)).toString(16).padStart(8,'0');
+  // h = BB GG RR AA  (b1=BB, b2=GG, b3=RR)
+  return ('#'+h.slice(4,6)+h.slice(2,4)+h.slice(0,2)).toUpperCase();
+}
 
-// Get color for a paint item ID — reads from seed (id+1) bg_col if available
 function getPaintColor(paintId){
-  const seedId=paintId+1;
-  const seed=IDMAP[seedId];
+  const seed=IDMAP[paintId+1];
   if(seed&&seed.bg_col){
-    const v=seed.bg_col;
-    const r=(v>>>16)&0xff,g=(v>>>8)&0xff,b=v&0xff;
-    // use strong alpha for overlay
-    return{hex:`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`,r,g,b};
+    const hex=decodeBgCol(seed.bg_col);
+    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return{hex,r,g,b};
   }
   const fb=PAINT_FALLBACK[paintId]||'#888888';
   const r=parseInt(fb.slice(1,3),16),g=parseInt(fb.slice(3,5),16),b=parseInt(fb.slice(5,7),16);
   return{hex:fb,r,g,b};
 }
-
 function openPaintPicker(e){
-  const picker=document.getElementById('paintPicker');
-  const grid=document.getElementById('ppGrid');
-  grid.innerHTML='';
-  const sz=28;
-  // Varnish swatch first
-  const vsw=document.createElement('div');
-  vsw.className='pp-swatch varnish'+(selPaintItem===null?' sel':'');
-  vsw.title='Varnish (remove paint)';
-  vsw.addEventListener('click',()=>{selPaintItem=null;setTool('paint');closePaintPicker();updateSelPaintDisplay();});
-  grid.appendChild(vsw);
-  // Paint swatches — show block texture, not seed
+  const picker=document.getElementById('paintPicker');const grid=document.getElementById('ppGrid');grid.innerHTML='';const sz=28;
+  const vsw=document.createElement('div');vsw.className='pp-swatch varnish'+(selPaintItem===null?' sel':'');vsw.title='Varnish (remove paint)';
+  vsw.addEventListener('click',()=>{selPaintItem=null;setTool('paint');closePaintPicker();updateSelPaintDisplay();});grid.appendChild(vsw);
   PAINT_IDS.forEach(pid=>{
-    const it=IDMAP[pid];
-    const col=getPaintColor(pid);
-    const outer=document.createElement('div');
-    outer.className='pp-swatch'+(selPaintItem===pid?' sel':'');
-    outer.style.position='relative';outer.style.overflow='hidden';
-    outer.title=(it?it.name:'Paint '+pid);
-    // Background: actual block texture
-    if(it){
-      const c=document.createElement('canvas');c.width=sz;c.height=sz;
-      c.style.cssText=`position:absolute;inset:0;width:${sz}px;height:${sz}px;image-rendering:pixelated;`;
-      const cached=getCached(it,sz);c.getContext('2d').drawImage(cached,0,0);
-      outer.appendChild(c);
-    }else{
-      outer.style.background=col.hex;
-    }
-    // Color overlay tint on top
-    const tint=document.createElement('div');
-    tint.style.cssText=`position:absolute;inset:0;background:${col.hex};opacity:0.55;`;
-    outer.appendChild(tint);
+    const it=IDMAP[pid];const col=getPaintColor(pid);
+    const outer=document.createElement('div');outer.className='pp-swatch'+(selPaintItem===pid?' sel':'');outer.style.position='relative';outer.style.overflow='hidden';outer.title=(it?it.name:'Paint '+pid);
+    if(it){const c=document.createElement('canvas');c.width=sz;c.height=sz;c.style.cssText=`position:absolute;inset:0;width:${sz}px;height:${sz}px;image-rendering:pixelated;`;const cached=getCached(it,sz);c.getContext('2d').drawImage(cached,0,0);outer.appendChild(c);}
+    else{outer.style.background=col.hex;}
+    const tint=document.createElement('div');tint.style.cssText=`position:absolute;inset:0;background:${col.hex};opacity:0.55;`;outer.appendChild(tint);
     outer.addEventListener('click',()=>{selPaintItem=pid;setTool('paint');closePaintPicker();updateSelPaintDisplay();});
     grid.appendChild(outer);
   });
-  // Position near button
-  const btn=document.getElementById('tPaint');
-  const r=btn.getBoundingClientRect();
-  picker.style.top=(r.bottom+6)+'px';
-  picker.style.left=Math.max(4,r.left-60)+'px';
-  picker.classList.add('open');
-  setTool('paint');
+  const btn=document.getElementById('tPaint');const r=btn.getBoundingClientRect();
+  picker.style.top=(r.bottom+6)+'px';picker.style.left=Math.max(4,r.left-60)+'px';
+  picker.classList.add('open');setTool('paint');
 }
 function closePaintPicker(){document.getElementById('paintPicker').classList.remove('open');}
 function updateSelPaintDisplay(){
   const btn=document.getElementById('tPaint');
-  if(selPaintItem!==null){
-    btn.style.boxShadow='0 0 0 2px '+getPaintColor(selPaintItem).hex;
-  }else{
-    btn.style.boxShadow='0 0 0 2px var(--muted2)';
-  }
+  if(selPaintItem!==null){btn.style.boxShadow='0 0 0 2px '+getPaintColor(selPaintItem).hex;}
+  else{btn.style.boxShadow='0 0 0 2px var(--muted2)';}
 }
-
-function applyPaint(cells){
+function applyPaint(cells, erase=false){
   let changed=false;
   cells.forEach(([wx,wy])=>{
-    if(!inB(wx,wy))return;
-    const cur=paintLayer[wy][wx];
-    if(selPaintItem===null){
-      // Varnish: only removes existing paint
-      if(cur===null)return;
-      paintLayer[wy][wx]=null;changed=true;
+    if(!inB(wx,wy))return;const cur=paintLayer[wy][wx];
+    if(erase||selPaintItem===null){
+      // Right-click OR varnish selected: always remove paint
+      if(cur===null)return;paintLayer[wy][wx]=null;changed=true;
     }else{
-      if(cur===selPaintItem)return;
-      paintLayer[wy][wx]=selPaintItem;changed=true;
+      if(cur===selPaintItem)return;paintLayer[wy][wx]=selPaintItem;changed=true;
     }
   });
   if(changed)schedRender();
 }
 
-// ════════════════════════════════
 // ── WRENCH TOOL ──
-// ════════════════════════════════
-let _wrenchCell=null; // {wx,wy,layer,it}
+let _wrenchCell=null;
+function _drawWmTile(c,im,col,row){
+  if(im&&im._loadOk&&im.naturalWidth){
+    const cx2=c.getContext('2d');cx2.clearRect(0,0,T,T);cx2.imageSmoothingEnabled=false;
+    cx2.drawImage(im,col*T,row*T,T,T,0,0,T,T);
+    if(vis(im,col*T,row*T)<2)c.style.opacity='0.18';else c.style.opacity='1';
+  }
+}
+
+function _setWrenchOv(tx,ty){
+  if(!_wrenchCell)return;
+  const{wx,wy,layer}=_wrenchCell;
+  wrenchOverrides[layer][wy][wx]={tx,ty};
+  clearCache();schedRender();autoSave();
+  // Update grid selection highlight
+  document.querySelectorAll('#wmGrid .wm-tile').forEach(t=>t.classList.toggle('sel',+t.dataset.tx===tx&&+t.dataset.ty===ty));
+  // Update state button highlight
+  _updateWmStateHighlight(tx,ty);
+}
+
+function _updateWmStateHighlight(tx,ty){
+  document.querySelectorAll('#wmStates .wm-state-btn').forEach(b=>{
+    b.classList.toggle('active',+b.dataset.tx===tx&&+b.dataset.ty===ty);
+  });
+}
+
+// Build quick-state buttons based on spread_type
+function _buildWmStates(it,im,curOv){
+  const statesEl=document.getElementById('wmStates');
+  statesEl.innerHTML='';
+  const curTx=curOv?curOv.tx:it.tex_x,curTy=curOv?curOv.ty:it.tex_y;
+  const SZ=28;
+
+  // Helper: make a state button
+  function mkBtn(label,tx,ty){
+    const btn=document.createElement('button');
+    btn.className='wm-state-btn'+(tx===curTx&&ty===curTy?' active':'');
+    btn.dataset.tx=tx;btn.dataset.ty=ty;
+    const c=document.createElement('canvas');c.width=SZ;c.height=SZ;c.style.width=SZ+'px';c.style.height=SZ+'px';
+    _drawWmTile(c,im,tx,ty);
+    const lbl=document.createElement('span');lbl.textContent=label;
+    btn.appendChild(c);btn.appendChild(lbl);
+    btn.addEventListener('click',()=>_setWrenchOv(tx,ty));
+    statesEl.appendChild(btn);
+  }
+
+  const st=it.spread_type;
+
+  // For spread_type 7 (vertical chain): top-end, middle, bottom-end, isolated
+  if(st===7){
+    mkBtn('Top end', it.tex_x+2,it.tex_y+0);
+    mkBtn('Middle',  it.tex_x+1,it.tex_y+0);
+    mkBtn('Bot end', it.tex_x+0,it.tex_y+0);
+    mkBtn('Single',  it.tex_x+3,it.tex_y+0);
+    statesEl.style.display='flex';return;
+  }
+  // For spread_type 3 (horizontal axis): left-end, mid, right-end, isolated
+  if(st===3){
+    mkBtn('Left',it.tex_x+0,it.tex_y+0);
+    mkBtn('Mid',it.tex_x+1,it.tex_y+0);
+    mkBtn('Right',it.tex_x+2,it.tex_y+0);
+    mkBtn('Single',it.tex_x+3,it.tex_y+0);
+    statesEl.style.display='flex';return;
+  }
+  // For spread_type 2/5 (autotile): offer isolated + default
+  if(st===2||st===5){
+    mkBtn('Default',it.tex_x+4,it.tex_y+1);
+    mkBtn('Isolated',it.tex_x+4,it.tex_y+1);
+    statesEl.style.display='flex';return;
+  }
+  // For items with multiple rows/cols: offer mirror (flip tex_x around base)
+  if(im&&im.naturalWidth){
+    const cols=Math.floor(im.naturalWidth/T);
+    // Mirror: reflect tex_x within the item's column range (simple: tex_x base ± offset)
+    // For single-row multi-col items offer first 4 states
+    const rows=Math.floor(im.naturalHeight/T);
+    if(cols>=2||rows>=2){
+      // Show at most 8 quick-states from the item's base tile region
+      const maxQ=Math.min(8,cols);
+      for(let c2=0;c2<maxQ;c2++)mkBtn(`State ${c2+1}`,it.tex_x>0?0+c2:c2,it.tex_y);
+      statesEl.style.display='flex';return;
+    }
+  }
+  statesEl.style.display='none';
+}
 
 function openWrenchModal(wx,wy){
-  if(!inB(wx,wy))return;
-  // Find the item at this cell (prefer FG, then BG)
-  let layer=-1,it=null;
-  for(let l=1;l>=0;l--){
-    const id=world[l][wy][wx];if(id!=null&&IDMAP[id]){layer=l;it=IDMAP[id];break;}
-  }
+  if(!inB(wx,wy))return;let layer=-1,it=null;
+  for(let l=1;l>=0;l--){const id=world[l][wy][wx];if(id!=null&&IDMAP[id]){layer=l;it=IDMAP[id];break;}}
   if(!it){return;}
   _wrenchCell={wx,wy,layer,it};
-  const modal=document.getElementById('wrenchModal');
-  const grid=document.getElementById('wmGrid');
-  grid.innerHTML='';
-  // Find all visible tiles in this item's spritesheet
+
+  const grid=document.getElementById('wmGrid');grid.innerHTML='';
   const im=getImg(it.file_name);
   const cols=im&&im.naturalWidth?Math.floor(im.naturalWidth/T):8;
   const rows=im&&im.naturalHeight?Math.floor(im.naturalHeight/T):6;
-  // Get current override
   const curOv=wrenchOverrides[layer][wy][wx];
+
+  // Quick-state buttons
+  _buildWmStates(it,im,curOv);
+
+  // Full texture grid
   for(let row=0;row<rows;row++){
     for(let col=0;col<cols;col++){
-      const c=document.createElement('canvas');
-      c.width=T;c.height=T;c.className='wm-tile';
+      const c=document.createElement('canvas');c.width=T;c.height=T;c.className='wm-tile';
       c.style.width='32px';c.style.height='32px';
+      c.dataset.tx=col;c.dataset.ty=row;
       const isSel=curOv?(curOv.tx===col&&curOv.ty===row):(col===it.tex_x&&row===it.tex_y);
       if(isSel)c.classList.add('sel');
-      // Draw the tile
-      if(im&&im.complete&&im.naturalWidth){
-        const cx2=c.getContext('2d');cx2.imageSmoothingEnabled=false;
-        cx2.drawImage(im,col*T,row*T,T,T,0,0,T,T);
-        // Skip completely empty tiles
-        if(vis(im,col*T,row*T)<2){c.style.opacity='0.15';}
-      }
-      c.title=`${col},${row}`;
-      c.addEventListener('click',()=>{
-        if(!_wrenchCell)return;
-        const{wx:wx2,wy:wy2,layer:l2}=_wrenchCell;
-        wrenchOverrides[l2][wy2][wx2]={tx:col,ty:row};
-        clearCache();schedRender();
-        // Update selection highlight
-        grid.querySelectorAll('.wm-tile').forEach(t=>t.classList.remove('sel'));
-        c.classList.add('sel');
-      });
+      _drawWmTile(c,im,col,row);
+      c.title=`col:${col} row:${row}`;
+      c.addEventListener('click',()=>_setWrenchOv(col,row));
       grid.appendChild(c);
     }
   }
-  // Position near click
-  const wc2=document.getElementById('worldCanvas');
-  const r=wc2.getBoundingClientRect();
+
+  // Position modal near the clicked cell
+  const wc2=document.getElementById('worldCanvas');const rc=wc2.getBoundingClientRect();
   const cz=CELL*VIEW.z;
-  const scx=Math.round(VIEW.x+wx*cz)+r.left;
-  const scy=Math.round(VIEW.y+wy*cz)+r.top;
-  modal.style.left=Math.min(window.innerWidth-350,Math.max(4,scx))+'px';
-  modal.style.top=Math.min(window.innerHeight-260,Math.max(4,scy+8))+'px';
+  const scx=Math.round(VIEW.x+wx*cz)+rc.left;
+  const scy=Math.round(VIEW.y+wy*cz)+rc.top;
+  const modal=document.getElementById('wrenchModal');
+  modal.style.left=Math.min(window.innerWidth-370,Math.max(4,scx))+'px';
+  modal.style.top=Math.min(window.innerHeight-300,Math.max(4,scy+8))+'px';
   modal.classList.add('open');
 }
 function closeWrenchModal(){document.getElementById('wrenchModal').classList.remove('open');_wrenchCell=null;}
 
-// Close paint picker / wrench modal on outside click
 document.addEventListener('mousedown',e=>{
   if(!e.target.closest('#paintPicker')&&!e.target.closest('#tPaint'))closePaintPicker();
   if(!e.target.closest('#wrenchModal'))closeWrenchModal();
@@ -1592,13 +1715,14 @@ document.addEventListener('mousedown',e=>{
 
 // ---- LOAD ----
 async function loadItems(){
-  try{const res=await fetch(`${RAW}/${CFG.ver}/decoded/items.dat.txt`);if(!res.ok)throw new Error('HTTP '+res.status);
+  try{
+    const res=await fetch(`${RAW}/${CFG.ver}/decoded/items.dat.txt`);if(!res.ok)throw new Error('HTTP '+res.status);
     ITEMS=parseItems(await res.text());IMAP={};IDMAP={};ITEMS.forEach(it=>{IMAP[it.name]=it;IDMAP[it.id]=it;});
     dataReady=true;getImg('tiles_page1.rttex');renderSidebar();startSbRetry();schedRender();checkRestore();
   }catch(err){document.getElementById('sbList').innerHTML=`<div class="sb-empty" style="color:#f87171">Error: ${err.message}</div>`;}
 }
 
-window.addEventListener('load',()=>{resizeCanvas();fitView();renderWp();loadItems();setLayer('auto');setTool('pencil');snapShot();});
+window.addEventListener('load',()=>{resizeCanvas();fitView();renderWp();loadItems();setLayer('auto');setTool('pencil');snapShot();const sv=document.getElementById('statVer');if(sv)sv.textContent=CFG.ver;});
 window.addEventListener('resize',()=>{resizeCanvas();renderWp();});
 new ResizeObserver(()=>{resizeCanvas();renderWp();}).observe(area);
 </script>

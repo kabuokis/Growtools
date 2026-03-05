@@ -40,6 +40,8 @@ body{font-family:'Montserrat',sans-serif}
 .icon-level-calculator{color:var(--tool-5)!important}
 .icon-item-browser{color:#4ade80!important}
 .icon-admin-checker{color:var(--tool-9)!important}
+.icon-world-planner{color:var(--tool-8)!important}
+.icon-growtopia-news{color:var(--tool-10)!important}
 header{position:relative;background-color:var(--darker);padding:10px 0}
 .header-content{display:flex;justify-content:space-between;align-items:center;padding:0 1rem}
 .header-right-content{display:flex;align-items:center;gap:20px}
@@ -363,6 +365,8 @@ header{position:relative;background-color:var(--darker);padding:10px 0}
                 <li><a href="cache-checker.html" class="block px-4 py-2"><i class="fas fa-id-card icon-cache"></i> Cache Checker</a></li>
                 <li><a href="level-calculator.html" class="block px-4 py-2"><i class="fas fa-calculator icon-level-calculator"></i> Level Calculator</a></li>
                 <li><a href="admin-checker.html" class="block px-4 py-2"><i class="fas fa-user-shield icon-admin-checker"></i> Admin Checker</a></li>
+                <li><a href="growtopia-news.html" class="block px-4 py-2"><i class="fas fa-newspaper icon-growtopia-news"></i> Growtopia News</a></li>
+                <li><a href="world-home.html" class="block px-4 py-2"><i class="fas fa-map icon-world-planner"></i> World Planner</a></li>
               </ul>
             </div>
           </li>
@@ -2013,38 +2017,39 @@ function jumpTo(name){const it=IMAP[name];if(!it)return;document.getElementById(
 </main>
 
 <footer>
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3>About Growtools</h3>
-        <p>A collection of powerful utilities designed to help Growtopia players get the most out of their game experience.</p>
-        <div class="social-links">
-          <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fab fa-discord"></i></a>
-          <a href="https://www.youtube.com/channel/UCvoRNyYeWnmb1TojljTkdbA" target="_blank"><i class="fab fa-youtube"></i></a>
-          <a href="https://github.com/xSkriptx/Growtools" target="_blank"><i class="fab fa-github"></i></a>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Growtools</h3>
+                    <p>A collection of powerful utilities designed to help Growtopia players get the most out of their game experience.</p>
+                    <div class="social-links">
+                        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fab fa-discord"></i></a>
+                        <a href="https://www.youtube.com/channel/UCvoRNyYeWnmb1TojljTkdbA" target="_blank"><i class="fab fa-youtube"></i></a>
+                        <a href="https://github.com/xSkriptx/Growtools" target="_blank"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Tools</h3>
+                    <a href="pages/dat-decoder.html"><i class="fas fa-code"></i> DAT Decoder</a>
+                    <a href="pages/data-mining.html"><i class="fas fa-database"></i> Data Mining</a>
+                    <a href="pages/rttex-converter.html"><i class="fas fa-exchange-alt"></i> RTTEX Converter</a>
+                    <a href="pages/account-checker.html"><i class="fas fa-user-shield"></i> Account Checker</a>
+                    <a href="pages/level-calculator.html"><i class="fas fa-calculator"></i> Level Calculator</a>
+                    <a href="pages/world-home.html"><i class="fas fa-map"></i> World Planner</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-envelope"></i> Contact Us</a>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-question-circle"></i> FAQ</a>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-bug"></i> Report Bug</a>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-lightbulb"></i> Feature Request</a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2025 Growtools. Not affiliated with Growtopia or Ubisoft. All Growtopia content is property of Ubisoft Entertainment.
+            </div>
         </div>
-      </div>
-      <div class="footer-section">
-        <h3>Tools</h3>
-        <a href="dat-decoder.html"><i class="fas fa-code"></i> DAT Decoder</a>
-        <a href="data-mining.html"><i class="fas fa-database"></i> Data Mining</a>
-        <a href="rttex-converter.html"><i class="fas fa-exchange-alt"></i> RTTEX Converter</a>
-        <a href="account-checker.html"><i class="fas fa-user-shield"></i> Account Checker</a>
-        <a href="level-calculator.html"><i class="fas fa-calculator"></i> Level Calculator</a>
-      </div>
-      <div class="footer-section">
-        <h3>Support</h3>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-envelope"></i> Contact Us</a>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-question-circle"></i> FAQ</a>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-bug"></i> Report Bug</a>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-lightbulb"></i> Feature Request</a>
-      </div>
-    </div>
-    <div class="copyright">
-      &copy; 2025 Growtools. Not affiliated with Growtopia or Ubisoft. All Growtopia content is property of Ubisoft Entertainment.
-    </div>
-  </div>
-</footer>
+    </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
 <script src="../js/script.js"></script>

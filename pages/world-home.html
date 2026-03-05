@@ -15,14 +15,11 @@
   --light:#dde6f0;--muted:#4a5a72;--muted2:#7a8fa8;
   --tool-1:#5b8cff;--tool-2:#00c2ff;--tool-3:#4ade80;--tool-4:#f87171;
   --tool-5:#fbbf24;--tool-6:#a78bfa;--tool-7:#34d399;--tool-8:#38bdf8;
-  --tool-9:#fb923c;
-  --tool-wp:#38bdf8;
+  --tool-9:#fb923c;--tool-wp:#38bdf8;
   --green:#4ade80;--cyan:#38bdf8;--gold:#fbbf24;--red:#f87171;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--light);font-family:'Montserrat',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
-
-/* HEADER */
 header{position:relative;background-color:var(--darker);padding:10px 0;border-bottom:1px solid var(--border);flex-shrink:0;}
 .header-content{display:flex;justify-content:space-between;align-items:center;padding:0 1rem;}
 .header-right-content{display:flex;align-items:center;gap:20px;}
@@ -39,24 +36,16 @@ header{position:relative;background-color:var(--darker);padding:10px 0;border-bo
 .visitor-count{list-style:none;display:flex;align-items:center;}
 @media(max-width:768px){.visitor-count{display:none;}}
 .icon-world-planner{color:var(--tool-wp)!important;}
-
-/* LAYOUT */
 .main-wrap{flex:1;}
 .content-area{padding:2rem 1rem;}
 .container{max-width:1000px;width:100%;margin:0 auto;padding:0 1rem;}
-
-/* TOOL HEADER */
 .tool-header{margin-bottom:1.5rem;}
 .tool-header h1{font-size:1.6rem;font-weight:700;color:var(--tool-wp);display:flex;align-items:center;gap:10px;}
 .tool-header p{color:var(--muted2);margin-top:6px;font-size:0.9rem;}
-
-/* CARD BOXES */
 .tool-content{background:var(--dark);border:1px solid var(--border);border-radius:10px;padding:22px;margin-bottom:20px;}
 .tool-section h2{color:var(--tool-wp);border-bottom:2px solid var(--tool-wp);padding-bottom:8px;margin-bottom:16px;font-size:1.05rem;font-weight:700;}
 .tool-section h3{color:var(--tool-wp);border-bottom:1px solid var(--border2);padding-bottom:5px;margin:14px 0 9px;font-size:0.9rem;font-weight:700;}
 .tool-section p{color:var(--muted2);font-size:0.875rem;line-height:1.7;}
-
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:7px;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .15s;text-decoration:none;font-family:'Montserrat',sans-serif;}
 .btn-primary{background:linear-gradient(to right,var(--tool-wp),#5b8cff);color:#fff;}
 .btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);}
@@ -66,19 +55,13 @@ header{position:relative;background-color:var(--darker);padding:10px 0;border-bo
 .btn-success:hover{filter:brightness(1.08);}
 .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted2);}
 .btn-ghost:hover{border-color:var(--danger);color:var(--danger);}
-
-/* HERO */
 .hero-box{text-align:center;padding:30px 20px 24px;border-bottom:1px solid var(--border);margin-bottom:22px;}
 .hero-icon{font-size:46px;line-height:1;margin-bottom:10px;}
 .hero-box h2{font-size:1.4rem;font-weight:700;color:var(--tool-wp);margin-bottom:8px;}
 .hero-box p{color:var(--muted2);font-size:0.875rem;max-width:460px;margin:0 auto 18px;line-height:1.7;}
 .hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-
-/* SECTION LABEL */
 .sec-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
-
-/* NEW WORLD PANEL */
 .new-panel{background:var(--card);border:1px solid var(--border2);border-radius:9px;padding:20px;margin-bottom:4px;display:none;}
 .new-panel.open{display:block;animation:fadeIn .2s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
@@ -98,8 +81,6 @@ header{position:relative;background-color:var(--darker);padding:10px 0;border-bo
 .preset-name{font-size:11px;font-weight:700;color:var(--light);}
 .preset-desc{font-size:9px;color:var(--muted2);margin-top:3px;line-height:1.4;}
 .new-panel-foot{display:flex;gap:10px;justify-content:flex-end;padding-top:4px;}
-
-/* WORLD HISTORY */
 .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;}
 .world-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:15px;cursor:pointer;transition:all .14s;position:relative;overflow:hidden;}
 .world-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
@@ -118,8 +99,10 @@ header{position:relative;background-color:var(--darker);padding:10px 0;border-bo
 .empty-history{text-align:center;padding:40px;color:var(--muted);border:1px dashed var(--border2);border-radius:10px;}
 .empty-history p{font-size:12px;line-height:1.9;}
 .empty-history strong{color:var(--muted2);}
-
-/* FOOTER */
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ade80;padding:12px 18px;border-radius:9px;font-size:12px;font-weight:700;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.toast.show{display:block;animation:slideUp .25s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 0 20px;}
 .footer-content{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-bottom:30px;}
 @media(max-width:600px){.footer-content{grid-template-columns:1fr;}}
@@ -136,7 +119,6 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <div class="container header-content">
     <div class="logo">
@@ -155,7 +137,7 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
       <div class="hidden w-full md:block md:w-auto" id="navbar-dropdown">
         <ul class="nav-links-flowbite flex flex-col font-medium p-4 mt-4 rounded-lg md:flex-row md:mt-0 md:text-sm md:border-0 md:space-x-2 md:rtl:space-x-reverse">
           <li><a href="../index.html" class="nav-link-custom block"><i class="fas fa-home"></i> Home</a></li>
-          <li><a href="world-home.html" class="nav-link-custom active block" aria-current="page"><i class="fas fa-globe icon-world-planner"></i> World Planner</a></li>
+          <li><a href="world-home.html" class="nav-link-custom active block"><i class="fas fa-globe icon-world-planner"></i> World Planner</a></li>
           <li><a href="dat-decoder.html" class="nav-link-custom block"><i class="fas fa-code" style="color:var(--tool-1)"></i> DAT Decoder</a></li>
           <li><a href="data-mining.html" class="nav-link-custom block"><i class="fas fa-database" style="color:var(--tool-2)"></i> Data Mining</a></li>
           <li><a href="rttex-converter.html" class="nav-link-custom block"><i class="fas fa-exchange-alt" style="color:var(--tool-3)"></i> RTTEX Converter</a></li>
@@ -173,6 +155,8 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
                 <li><a href="cache-checker.html" class="block px-4 py-2"><i class="fas fa-id-card" style="color:var(--tool-7)"></i> Cache Checker</a></li>
                 <li><a href="level-calculator.html" class="block px-4 py-2"><i class="fas fa-calculator" style="color:var(--tool-5)"></i> Level Calculator</a></li>
                 <li><a href="admin-checker.html" class="block px-4 py-2"><i class="fas fa-user-shield" style="color:var(--tool-9)"></i> Admin Checker</a></li>
+                <li><a href="growtopia-news.html" class="block px-4 py-2"><i class="fas fa-newspaper" style="color:var(--tool-10)"></i> Growtopia News</a></li>
+                <li><a href="world-home.html" class="nav-link-custom active block px-4 py-2" aria-current="page"><i class="fas fa-map icon-world-planner"></i> World Planner</a></li>
               </ul>
             </div>
           </li>
@@ -185,7 +169,6 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
   </div>
 </header>
 
-<!-- MAIN -->
 <div class="main-wrap">
   <div class="content-area">
     <div class="container">
@@ -195,28 +178,30 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
         <p>Design, plan and visualise your Growtopia worlds with full autotiling, paint tools, wrench overrides and export support.</p>
       </div>
 
-      <!-- Hero + New World -->
       <div class="tool-content">
         <div class="hero-box">
           <div class="hero-icon">🌍</div>
           <h2>Plan Your World</h2>
           <p>Create detailed world layouts before building in-game. Pick blocks from the full item database, use presets, paint colour overlays and the wrench to fine-tune textures.</p>
           <div class="hero-btns">
-            
-            <button class="btn btn-secondary" onclick="openEditor()">
+            <button class="btn btn-primary" onclick="openNewPanel()">
+              <i class="fas fa-plus"></i> New World
+            </button>
+            <!-- FIX: Open Editor opens editor WITHOUT overwriting current session -->
+            <button class="btn btn-secondary" onclick="openEditorDirect()">
               <i class="fas fa-pencil-alt"></i> Open Editor
             </button>
           </div>
         </div>
 
-        <!-- New World Config -->
+        <!-- New World Config Panel -->
         <div class="new-panel" id="newPanel">
           <div class="new-panel-title"><i class="fas fa-cog"></i> Configure New World</div>
           <div class="cfg-grid">
             <div class="cfg-group">
               <span class="cfg-label">World Size</span>
               <select class="cfg-select" id="cfgSize">
-                <option value="99x59" selected>99×59 (Standard)</option>
+                <option value="100x60" selected>100×60 (Standard)</option>
                 <option value="50x30">50×30 (Small)</option>
                 <option value="200x80">200×80 (Large)</option>
               </select>
@@ -225,7 +210,21 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
               <span class="cfg-label">Wallpaper</span>
               <select class="cfg-select" id="cfgWp">
                 <option value="sunny" selected>☀️ Sunny</option>
+                <option value="city">🌆 Rainy City</option>
                 <option value="none">🌑 None / Dark</option>
+              </select>
+            </div>
+            <div class="cfg-group">
+              <span class="cfg-label">Game Version</span>
+              <select class="cfg-select" id="cfgVer">
+                <option value="5.42" selected>5.42 (Latest)</option>
+                <option value="5.41">5.41</option>
+                <option value="5.40">5.40</option>
+                <option value="5.39">5.39</option>
+                <option value="5.38">5.38</option>
+                <option value="5.37">5.37</option>
+                <option value="5.36">5.36</option>
+                <option value="5.35">5.35</option>
               </select>
             </div>
             <div class="cfg-group">
@@ -253,7 +252,8 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
           </div>
           <div class="new-panel-foot">
             <button class="btn btn-ghost" onclick="closeNewPanel()">Cancel</button>
-            <button class="btn btn-success" onclick="createWorld()">
+            <!-- FIX: createWorld now IMMEDIATELY writes to gt_wp_v4 and redirects -->
+            <button class="btn btn-success" onclick="createWorldAndOpen()">
               <i class="fas fa-play"></i> Open in Editor
             </button>
           </div>
@@ -274,7 +274,7 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
           <h2><i class="fas fa-info-circle"></i> About World Planner</h2>
           <p>World Planner lets you design Growtopia worlds on a canvas using the complete item database. Blocks autotile automatically based on their neighbours, you can paint transparent colour overlays using real in-game paint items, and use the wrench tool to manually pick any texture variant from a block's spritesheet.</p>
           <h3>Tools &amp; Features</h3>
-          <p>Pencil, line, rectangle, circle and flood-fill drawing · Select / cut / copy / paste regions · Paint brush with in-game paint colours · Wrench texture override · Undo / redo (60 steps) · Grid and coordinate toggles · World presets · Export and import as JSON</p>
+          <p>Pencil, line, rectangle, circle and flood-fill drawing · Select / cut / copy / paste regions · Paint brush with in-game paint colours · Wrench texture override · Undo / redo (60 steps) · Grid and coordinate toggles · World presets · Export and import as JSON · <strong>Render &amp; download as PNG</strong></p>
         </div>
       </div>
 
@@ -282,56 +282,80 @@ footer{background:var(--darker);border-top:1px solid var(--border);padding:40px 
   </div>
 </div>
 
-<!-- FOOTER -->
+<div class="toast" id="toast"></div>
+
 <footer>
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3>About Growtools</h3>
-        <p>A collection of powerful utilities designed to help Growtopia players get the most out of their game experience.</p>
-        <div class="social-links">
-          <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fab fa-discord"></i></a>
-          <a href="https://www.youtube.com/channel/UCvoRNyYeWnmb1TojljTkdbA" target="_blank"><i class="fab fa-youtube"></i></a>
-          <a href="https://github.com/xSkriptx/Growtools" target="_blank"><i class="fab fa-github"></i></a>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Growtools</h3>
+                    <p>A collection of powerful utilities designed to help Growtopia players get the most out of their game experience.</p>
+                    <div class="social-links">
+                        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fab fa-discord"></i></a>
+                        <a href="https://www.youtube.com/channel/UCvoRNyYeWnmb1TojljTkdbA" target="_blank"><i class="fab fa-youtube"></i></a>
+                        <a href="https://github.com/xSkriptx/Growtools" target="_blank"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Tools</h3>
+                    <a href="pages/dat-decoder.html"><i class="fas fa-code"></i> DAT Decoder</a>
+                    <a href="pages/data-mining.html"><i class="fas fa-database"></i> Data Mining</a>
+                    <a href="pages/rttex-converter.html"><i class="fas fa-exchange-alt"></i> RTTEX Converter</a>
+                    <a href="pages/account-checker.html"><i class="fas fa-user-shield"></i> Account Checker</a>
+                    <a href="pages/level-calculator.html"><i class="fas fa-calculator"></i> Level Calculator</a>
+                    <a href="pages/world-home.html"><i class="fas fa-map"></i> World Planner</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-envelope"></i> Contact Us</a>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-question-circle"></i> FAQ</a>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-bug"></i> Report Bug</a>
+                    <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-lightbulb"></i> Feature Request</a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2025 Growtools. Not affiliated with Growtopia or Ubisoft. All Growtopia content is property of Ubisoft Entertainment.
+            </div>
         </div>
-      </div>
-      <div class="footer-section">
-        <h3>Tools</h3>
-        <a href="world-home.html"><i class="fas fa-globe"></i> World Planner</a>
-        <a href="dat-decoder.html"><i class="fas fa-code"></i> DAT Decoder</a>
-        <a href="data-mining.html"><i class="fas fa-database"></i> Data Mining</a>
-        <a href="rttex-converter.html"><i class="fas fa-exchange-alt"></i> RTTEX Converter</a>
-        <a href="account-checker.html"><i class="fas fa-user-shield"></i> Account Checker</a>
-        <a href="level-calculator.html"><i class="fas fa-calculator"></i> Level Calculator</a>
-        <a href="item-browser.html"><i class="fas fa-leaf"></i> Item Browser</a>
-      </div>
-      <div class="footer-section">
-        <h3>Support</h3>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-envelope"></i> Contact Us</a>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-question-circle"></i> FAQ</a>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-bug"></i> Report Bug</a>
-        <a href="https://discord.gg/HSdayEQKwe" target="_blank"><i class="fas fa-lightbulb"></i> Feature Request</a>
-      </div>
-    </div>
-    <div class="copyright">
-      &copy; 2025 Growtools. Not affiliated with Growtopia or Ubisoft. All Growtopia content is property of Ubisoft Entertainment.
-    </div>
-  </div>
-</footer>
+    </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
 <script>
-const LS_KEY = 'gt_wp_history';
+// ══════════════════════════════════════════════════════
+// WORLD HOME - SESSION MANAGEMENT
+// 
+// HOW IT WORKS:
+//   - History stored in localStorage 'gt_wp_history' (array of world saves)
+//   - Autosave stored in localStorage 'gt_wp_v4' (current session backup)
+//   - Page handoff uses sessionStorage 'gt_wp_intent' (one-time, consumed on load)
+//
+//   Opening a world from history:
+//     → writes {type:'existing', data:{full world object}} to sessionStorage
+//     → navigates to editor
+//     → editor reads + deletes the intent, restores world
+//
+//   Creating a new world:
+//     → writes {type:'new', name, size, wp, preset} to sessionStorage
+//     → navigates to editor
+//     → editor reads + deletes intent, runs initWorld + applyPreset
+//
+//   Open Editor (no intent):
+//     → just navigates; editor falls back to gt_wp_v4 autosave
+// ══════════════════════════════════════════════════════
 
-function loadHistory(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
-function saveHistory(h){ localStorage.setItem(LS_KEY, JSON.stringify(h)); }
+const LS_HISTORY = 'gt_wp_history';
+const SS_INTENT  = 'gt_wp_intent';   // sessionStorage key for handoff
+
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem(LS_HISTORY)||'[]'); }catch(e){ return []; } }
+function saveHistory(h){ localStorage.setItem(LS_HISTORY, JSON.stringify(h)); }
+
 function countBlocks(world){
-  if(!world)return 0;
+  if(!world) return 0;
   let n=0;
   for(let l=0;l<2;l++) if(world[l]) for(const row of world[l]) for(const v of row) if(v!=null) n++;
   return n;
 }
-function escHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function renderHistory(){
   const h = loadHistory();
@@ -358,7 +382,7 @@ function renderHistory(){
         </div>
       </div>
       <div class="wc-meta">
-        <span class="wc-tag sz">${w.size?.w||100}×${w.size?.h||59}</span>
+        <span class="wc-tag sz">${w.size?.w||100}×${w.size?.h||60}</span>
         <span class="wc-tag wp-tag">${w.wp==='sunny'?'☀️':'🌑'} ${w.wp||'sunny'}</span>
         <span class="wc-tag bl">${blocks} blocks</span>
       </div>`;
@@ -375,56 +399,85 @@ function deleteWorld(e,idx){
   const h=loadHistory(); h.splice(idx,1); saveHistory(h); renderHistory();
 }
 
+// Open a saved world from history
 function openWorld(idx){
-  const h=loadHistory(); const w=h[idx]; if(!w) return;
-  // Write to gt_wp_v4 preserving _isNew flag so editor applies preset if needed
-  localStorage.setItem('gt_wp_v4', JSON.stringify(w));
+  const h = loadHistory();
+  let w = h[idx];
+  if(!w) return;
+
+  // If history entry still has empty world arrays (never-edited placeholder),
+  // check if gt_wp_v4 autosave has a fresher copy with same name
+  const worldIsEmpty = !w.world || w.world.every(layer =>
+    !layer || layer.every(row => !row || row.every(cell => cell === null))
+  );
+  if(worldIsEmpty){
+    try{
+      const autosave = JSON.parse(localStorage.getItem('gt_wp_v4') || 'null');
+      if(autosave && autosave.name === w.name && autosave.world){
+        w = autosave;
+      }
+    }catch(e){}
+  }
+
+  // Write the world directly into gt_wp_v4 so the editor loads it via autosave fallback
+  // Use BOTH mechanisms for reliability: write to gt_wp_v4 AND set sessionStorage intent
+  try{ localStorage.setItem('gt_wp_v4', JSON.stringify(w)); }catch(e){}
+  sessionStorage.setItem(SS_INTENT, JSON.stringify({ type:'existing', name: w.name }));
   window.location.href = 'world-planner.html';
 }
 
-// ── New world ──
-let selPresetVal = 'normal';
-function openNewPanel(){ document.getElementById('newPanel').classList.add('open'); document.getElementById('newPanel').scrollIntoView({behavior:'smooth',block:'nearest'}); }
-function closeNewPanel(){ document.getElementById('newPanel').classList.remove('open'); }
-function selPreset(el){ document.querySelectorAll('.preset-card').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); selPresetVal=el.dataset.preset; }
+// Open editor without any intent — editor uses its autosave
+function openEditorDirect(){
+  sessionStorage.removeItem(SS_INTENT);  // clear any stale intent
+  window.location.href = 'world-planner.html';
+}
 
-function createWorld(){
+// New world creation
+let selPresetVal = 'normal';
+
+function openNewPanel(){
+  document.getElementById('newPanel').classList.add('open');
+  document.getElementById('newPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeNewPanel(){ document.getElementById('newPanel').classList.remove('open'); }
+function selPreset(el){
+  document.querySelectorAll('.preset-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  selPresetVal = el.dataset.preset;
+}
+
+function createWorldAndOpen(){
   const sizeStr = document.getElementById('cfgSize').value;
   const [w,h]   = sizeStr.split('x').map(Number);
-  const wp      = document.getElementById('cfgWp').value;
-  const name    = document.getElementById('cfgName').value.trim() || 'New World';
-  const ts      = Date.now();
+  const wp       = document.getElementById('cfgWp').value;
+  const name     = document.getElementById('cfgName').value.trim() || 'New World';
+  const ts       = Date.now();
 
-  const session = {
-    v:'5.0', name, size:{w,h}, wp, preset:selPresetVal, ts,
-    _isNew: true,   // editor will apply preset on first open
+  // Add a placeholder to history (will be updated by editor's first autosave)
+  const placeholder = { v:'5.0', name, size:{w,h}, wp, preset:selPresetVal, ts,
     world: Array.from({length:2},()=>Array.from({length:h},()=>new Array(w).fill(null))),
     paintLayer: Array.from({length:h},()=>new Array(w).fill(null)),
     wrenchOverrides: Array.from({length:2},()=>Array.from({length:h},()=>new Array(w).fill(null)))
   };
-
-  // Save to history only — do NOT redirect, do NOT touch gt_wp_v4
   const hist = loadHistory();
-  hist.unshift(session);
+  hist.unshift(placeholder);
   if(hist.length > 20) hist.pop();
   saveHistory(hist);
 
-  // Close panel and refresh list
-  closeNewPanel();
-  document.getElementById('cfgName').value = '';
-  renderHistory();
+  const ver = document.getElementById('cfgVer').value;
+  // Save version preference
+  localStorage.setItem('gt_wp_ver_pref', ver);
+  sessionStorage.setItem('gt_wp_ver', ver);
+  // Pass intent via sessionStorage — editor reads this and builds the world fresh
+  const intent = { type:'new', name, size:{w,h}, wp, preset:selPresetVal, ver, ts };
+  sessionStorage.setItem(SS_INTENT, JSON.stringify(intent));
 
-  // Show confirmation
-  const msg = document.createElement('div');
-  msg.style.cssText = 'background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);color:#4ade80;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:700;margin-top:12px;text-align:center;';
-  msg.textContent = '✓ World "' + name + '" created! Click it below to open in the editor.';
-  document.querySelector('.tool-content').appendChild(msg);
-  setTimeout(()=>msg.remove(), 4000);
+  window.location.href = 'world-planner.html';
 }
 
-function openEditor(){ window.location.href = 'world-planner.html'; }
-
-window.addEventListener('storage', e => { if(e.key==='gt_wp_v4') renderHistory(); });
+// Restore last used version in dropdown
+(()=>{const v=localStorage.getItem('gt_wp_ver_pref');if(v){const s=document.getElementById('cfgVer');if(s&&[...s.options].some(o=>o.value===v))s.value=v;}})();
+window.addEventListener('storage', e => { if(e.key===LS_HISTORY) renderHistory(); });
 renderHistory();
 </script>
 </body>
